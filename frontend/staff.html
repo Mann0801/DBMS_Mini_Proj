@@ -117,15 +117,28 @@
     </section>
 
     <!-- ---------- Food tab ---------- -->
-    <!-- TODO (Manoj): food item list + add / edit / delete form -->
     <section id="tab-food" class="stack" hidden>
-      <div class="card empty">Food management is coming soon.</div>
+      <div class="card">
+        <div class="row" style="margin-bottom: 8px"><h2>Food items</h2><div class="spacer"></div><button id="food-refresh-btn" class="small">Refresh</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Name</th><th>Category</th><th class="num">Price</th><th>Availability</th><th>Actions</th></tr></thead><tbody id="food-body"></tbody></table></div>
+      </div>
+      <form id="food-form" class="card stack">
+        <h2 id="food-form-title">Add a food item</h2><input id="food-id" type="hidden">
+        <div class="form-grid">
+          <div><label for="food-name">Name</label><input id="food-name" required maxlength="100"></div>
+          <div><label for="food-category">Category</label><select id="food-category" required></select></div>
+          <div><label for="food-price">Price (₹)</label><input id="food-price" type="number" min="0.01" step="0.01" required></div>
+          <div><label for="food-description">Description</label><input id="food-description" maxlength="255"></div>
+          <div><label for="food-available">Availability</label><select id="food-available"><option value="true">Available</option><option value="false">Unavailable</option></select></div>
+          <div class="row"><button id="food-save-btn" type="submit" class="primary">Add food item</button><button id="food-cancel-edit" type="button" hidden>Cancel edit</button></div>
+        </div>
+      </form>
     </section>
 
     <!-- ---------- Stats tab ---------- -->
-    <!-- TODO (Manoj): one table per /api/staff/stats/... endpoint -->
     <section id="tab-stats" class="stack" hidden>
-      <div class="card empty">Reports are coming soon.</div>
+      <div class="row"><h2>Reports and statistics</h2><div class="spacer"></div><button id="stats-refresh-btn" class="small">Refresh</button></div>
+      <div id="stats-grid" class="stats-grid"></div>
     </section>
 
   </main>

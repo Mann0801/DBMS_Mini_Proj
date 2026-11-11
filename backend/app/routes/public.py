@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from ..database import get_db
 from ..services import order as order_service
+from ..services import food as food_service
 
 router = APIRouter(prefix="/api", tags=["Students"])
 
@@ -34,8 +35,17 @@ class OrderIn(BaseModel):
 
 # ---------------------------------------------------------------- menu (Manoj)
 
-# TODO (Manoj): GET /api/menu?q=&category=   -> services/food.py
-# TODO (Manoj): GET /api/categories          -> services/food.py
+@router.get("/menu")
+def menu(q: str | None = Query(default=None, max_length=100),
+         category: int | None = Query(default=None, gt=0)):
+    with get_db() as conn:
+        return food_service.menu(conn, q, category)
+
+
+@router.get("/categories")
+def categories():
+    with get_db() as conn:
+        return food_service.categories(conn)
 
 
 # ---------------------------------------------------------------- orders (Mann)

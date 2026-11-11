@@ -79,3 +79,13 @@ function formatTime(iso) {
     day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
   });
 }
+
+// Manoj's student menu helper: append only non-empty query values safely.
+API.withQuery = function (path, values) {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(values || {})) {
+    if (value !== undefined && value !== null && String(value) !== "") params.set(key, value);
+  }
+  const query = params.toString();
+  return query ? `${path}?${query}` : path;
+};

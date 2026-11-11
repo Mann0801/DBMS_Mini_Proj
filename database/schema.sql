@@ -35,9 +35,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- =====================================================================
 -- MANOJ: menu tables
--- TODO (Manoj): finalise these two tables. Mann's tables reference
--- food_items(id), name, price and is_available, so keep those columns.
--- Still to add: FULLTEXT index on (name, description), any extra checks.
+-- Mann's tables reference food_items(id), name, price and is_available.
 -- =====================================================================
 
 CREATE TABLE categories (
@@ -53,7 +51,8 @@ CREATE TABLE food_items (
     is_available BOOLEAN       NOT NULL DEFAULT TRUE,
     category_id  INT           NOT NULL,
     created_at   TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_food_category FOREIGN KEY (category_id) REFERENCES categories (id)
+    CONSTRAINT fk_food_category FOREIGN KEY (category_id) REFERENCES categories (id),
+    FULLTEXT KEY ft_food_name_description (name, description)
 ) ENGINE = InnoDB;
 
 
@@ -313,6 +312,38 @@ DELIMITER ;
 
 -- =====================================================================
 -- MANOJ: report views
--- TODO (Manoj): v_sales_report (paid orders only, per day and per
--- category), v_low_stock, v_unpaid_orders, v_top_items
 -- =====================================================================
+
+CREATE OR REPLACE VIEW v_sales_report AS
+SELECT DATE(o.created_at) AS sale_date,
+       c.id AS category_id,
+       c.name AS category_name,
+       SUM(oi.quantity * oi.price) AS sales_total,
+       SUM(oi.quantity) AS items_sold,
+       COUNT(DISTINCT o.id) AS order_count
+FROM orders o
+JOIN order_items oi ON oi.order_id = o.id
+JOIN food_items f ON f.id = oi.food_item_id
+JOIN categories c ON c.id = f.category_id
+WHERE o.payment_status = 'paid'
+GROUP BY DATE(o.created_at), c.id, c.name;
+
+CREATE OR REPLACE VIEW v_low_stock AS
+SELECT id, name, unit, stock, low_stock_threshold
+FROM ingredients
+WHERE stock <= low_stock_threshold;
+
+CREATE OR REPLACE VIEW v_unpaid_orders AS
+SELECT id, customer_name, customer_phone, status, total, created_at
+FROM orders
+WHERE payment_status = 'unpaid';
+
+CREATE OR REPLACE VIEW v_top_items AS
+SELECT f.id AS food_item_id, f.name, c.name AS category_name,
+       COALESCE(SUM(CASE WHEN o.payment_status = 'paid' THEN oi.quantity ELSE 0 END), 0) AS units_sold,
+       COALESCE(SUM(CASE WHEN o.payment_status = 'paid' THEN oi.quantity * oi.price ELSE 0 END), 0) AS sales_total
+FROM food_items f
+JOIN categories c ON c.id = f.category_id
+LEFT JOIN order_items oi ON oi.food_item_id = f.id
+LEFT JOIN orders o ON o.id = oi.order_id
+GROUP BY f.id, f.name, c.name;

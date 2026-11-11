@@ -1,6 +1,5 @@
 // CampusEats staff page: PIN login, tabs, Orders tab, Ingredients tab.
-// Food and Stats tabs: TODO (Manoj). Register their loaders with
-//   tabLoaders.food = loadFood;   tabLoaders.stats = loadStats;
+// Food and Stats tabs are loaded through their Manoj-owned modules below.
 
 const REFRESH_MS = 15000;
 const ACTIVE = ["placed", "accepted", "preparing", "ready"];
@@ -22,8 +21,8 @@ let refreshTimer = null;
 const tabLoaders = {
   orders: loadOrders,
   ingredients: loadIngredients,
-  // food: loadFood,     TODO (Manoj)
-  // stats: loadStats,   TODO (Manoj)
+  food: loadFood,
+  stats: loadStats,
 };
 
 // ============================================================ messages
@@ -383,6 +382,128 @@ $("add-ingredient-form").addEventListener("submit", async (e) => {
     btn.disabled = false;
   }
 });
+
+// ============================================================ Manoj: food management
+
+let foodRows = [];
+let foodCategories = [];
+
+async function loadFood() {
+  try {
+    [foodRows, foodCategories] = await Promise.all([
+      API.get("/api/staff/food", { staff: true }), API.get("/api/categories"),
+    ]);
+    $("food-category").innerHTML = foodCategories.map((c) =>
+      `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
+    $("food-body").innerHTML = foodRows.length ? foodRows.map((f) => `
+      <tr data-id="${f.id}">
+        <td><strong>${escapeHtml(f.name)}</strong><div class="muted">${escapeHtml(f.description || "")}</div></td>
+        <td>${escapeHtml(f.category_name)}</td><td class="num">${formatMoney(f.price)}</td>
+        <td><span class="badge ${f.is_available ? "ready" : "rejected"}">${f.is_available ? "Available" : "Unavailable"}</span></td>
+        <td><div class="row"><button class="small" data-food-action="edit" data-id="${f.id}">Edit</button><button class="small danger" data-food-action="delete" data-id="${f.id}">Delete</button></div></td>
+      </tr>`).join("") : '<tr><td colspan="5" class="empty">No food items yet.</td></tr>';
+  } catch (err) { handleError(err); }
+}
+
+function clearFoodForm() {
+  $("food-form").reset();
+  $("food-id").value = "";
+  $("food-form-title").textContent = "Add a food item";
+  $("food-save-btn").textContent = "Add food item";
+  $("food-cancel-edit").hidden = true;
+}
+
+$("food-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const id = $("food-id").value;
+  const btn = $("food-save-btn");
+  btn.disabled = true;
+  const body = {
+    name: $("food-name").value.trim(),
+    description: $("food-description").value.trim() || null,
+    price: Number($("food-price").value),
+    category_id: Number($("food-category").value),
+    is_available: $("food-available").value === "true",
+  };
+  try {
+    const saved = id
+      ? await API.put(`/api/staff/food/${id}`, { staff: true, body })
+      : await API.post("/api/staff/food", { staff: true, body });
+    toast(`${saved.name} ${id ? "updated" : "added"}.`);
+    clearFoodForm();
+    await loadFood();
+  } catch (err) { handleError(err); }
+  finally { btn.disabled = false; }
+});
+
+$("food-cancel-edit").addEventListener("click", clearFoodForm);
+$("food-refresh-btn").addEventListener("click", loadFood);
+$("food-body").addEventListener("click", async (event) => {
+  const btn = event.target.closest("button[data-food-action]");
+  if (!btn) return;
+  const item = foodRows.find((f) => f.id === Number(btn.dataset.id));
+  if (!item) return;
+  if (btn.dataset.foodAction === "edit") {
+    $("food-id").value = item.id;
+    $("food-name").value = item.name;
+    $("food-description").value = item.description || "";
+    $("food-price").value = item.price;
+    $("food-category").value = item.category_id;
+    $("food-available").value = String(Boolean(item.is_available));
+    $("food-form-title").textContent = `Edit ${item.name}`;
+    $("food-save-btn").textContent = "Save changes";
+    $("food-cancel-edit").hidden = false;
+    $("food-form").scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+  if (!confirm(`Delete ${item.name}? Items already ordered will be made unavailable.`)) return;
+  btn.disabled = true;
+  try {
+    const result = await API.del(`/api/staff/food/${item.id}`, { staff: true });
+    toast(result.deleted ? `${item.name} deleted.` : `${item.name} has past orders and was marked unavailable.`);
+    await loadFood();
+  } catch (err) { handleError(err); }
+});
+
+// ============================================================ Manoj: statistics
+
+const STAT_REPORTS = [
+  ["Daily sales (7 days)", "/api/staff/stats/daily-sales"],
+  ["Top items (ranked)", "/api/staff/stats/top-items"],
+  ["Running sales total", "/api/staff/stats/running-total"],
+  ["Sales by category", "/api/staff/stats/category-sales"],
+  ["Never ordered", "/api/staff/stats/never-ordered"],
+  ["Orders above average", "/api/staff/stats/above-average-orders"],
+  ["Ingredients shared by dishes", "/api/staff/stats/shared-ingredients"],
+  ["Ingredients used by one dish", "/api/staff/stats/single-dish-ingredients"],
+  ["Item sales (including zero sales)", "/api/staff/stats/item-sales"],
+  ["Sales report view", "/api/staff/stats/reports/sales"],
+  ["Low stock view", "/api/staff/stats/reports/low-stock"],
+  ["Unpaid orders view", "/api/staff/stats/reports/unpaid-orders"],
+  ["Top items view", "/api/staff/stats/reports/top-items"],
+];
+
+function statsTable(rows) {
+  if (!rows.length) return '<p class="muted">No rows to report.</p>';
+  const columns = Object.keys(rows[0]);
+  return `<div class="table-wrap"><table><thead><tr>${columns.map((c) => `<th>${escapeHtml(c.replaceAll("_", " "))}</th>`).join("")}</tr></thead><tbody>${rows.map((row) => `<tr>${columns.map((c) => `<td>${escapeHtml(row[c])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+
+async function loadStats() {
+  const grid = $("stats-grid");
+  grid.innerHTML = STAT_REPORTS.map(([title], i) => `<article class="card stats-card"><h3>${escapeHtml(title)}</h3><div id="stat-${i}" class="muted">Loading…</div></article>`).join("");
+  await Promise.all(STAT_REPORTS.map(async ([, path], i) => {
+    try {
+      const rows = await API.get(path, { staff: true });
+      $(`stat-${i}`).innerHTML = statsTable(rows);
+    } catch (err) {
+      $(`stat-${i}`).innerHTML = `<div class="alert error">${escapeHtml(err.message)}</div>`;
+      if (err.status === 401) handleError(err);
+    }
+  }));
+}
+
+$("stats-refresh-btn").addEventListener("click", loadStats);
 
 // ============================================================ start
 
