@@ -206,6 +206,8 @@ def mark_paid(conn, order_id):
         order = _get_order_row(cur, order_id, lock=True)
         if order["status"] == "rejected":
             raise HTTPException(409, "A rejected order cannot be paid")
+        if order["status"] == "placed":
+            raise HTTPException(409, "Accept the order before marking it paid")
         if order["payment_status"] == "paid":
             raise HTTPException(409, "This order is already paid")
         cur.execute("UPDATE orders SET payment_status = 'paid' WHERE id = %s", (order_id,))

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CampusEats Staff</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="/js/api.js" defer></script>
+  <script src="/js/staff.js" defer></script>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container">
+      <div class="brand">CampusEats <small>Staff</small></div>
+      <button id="logout-btn" class="small" hidden>Log out</button>
+    </div>
+  </header>
+
+  <!-- ===================== PIN screen ===================== -->
+  <main id="login-view" class="container" hidden>
+    <form id="login-form" class="card login stack">
+      <h2>Staff login</h2>
+      <div>
+        <label for="pin-input">Enter staff PIN</label>
+        <input id="pin-input" type="password" inputmode="numeric" autocomplete="off" required autofocus>
+      </div>
+      <div id="login-error" class="alert error" hidden></div>
+      <button type="submit" class="primary">Open staff page</button>
+    </form>
+  </main>
+
+  <!-- ===================== Staff app ===================== -->
+  <main id="app-view" class="container" hidden>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="orders" role="tab">Orders</button>
+      <button class="tab" data-tab="ingredients" role="tab">Ingredients</button>
+      <button class="tab" data-tab="food" role="tab">Food</button>
+      <button class="tab" data-tab="stats" role="tab">Stats</button>
+    </nav>
+
+    <!-- ---------- Orders tab (Mann) ---------- -->
+    <section id="tab-orders" class="stack">
+      <div class="row">
+        <div>
+          <label for="status-filter">Show</label>
+          <select id="status-filter">
+            <option value="active">Active orders</option>
+            <option value="placed">New (placed)</option>
+            <option value="accepted">Accepted</option>
+            <option value="preparing">Preparing</option>
+            <option value="ready">Ready</option>
+            <option value="collected">Collected</option>
+            <option value="rejected">Rejected</option>
+            <option value="unpaid">Unpaid</option>
+            <option value="all">All orders</option>
+          </select>
+        </div>
+        <div class="spacer"></div>
+        <span id="last-updated" class="muted"></span>
+        <button id="refresh-btn" class="small">Refresh</button>
+      </div>
+      <div id="order-counts" class="count-chips"></div>
+      <div id="orders-list" class="orders-grid"></div>
+    </section>
+
+    <!-- ---------- Ingredients tab (Mann) ---------- -->
+    <section id="tab-ingredients" class="stack" hidden>
+      <div id="low-stock-alert" class="alert warn" hidden></div>
+
+      <div class="card">
+        <div class="row" style="margin-bottom: 8px;">
+          <h2>Stock</h2>
+          <div class="spacer"></div>
+          <button id="ingredients-refresh-btn" class="small">Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Ingredient</th>
+                <th class="num">In stock</th>
+                <th class="num">Alert below</th>
+                <th>Status</th>
+                <th>Add stock</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="ingredients-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <form id="add-ingredient-form" class="card stack">
+        <h2>Add a new ingredient</h2>
+        <div class="form-grid">
+          <div>
+            <label for="ing-name">Name</label>
+            <input id="ing-name" required maxlength="100" placeholder="e.g. Onion">
+          </div>
+          <div>
+            <label for="ing-unit">Unit</label>
+            <input id="ing-unit" required maxlength="20" placeholder="kg, L, pcs">
+          </div>
+          <div>
+            <label for="ing-stock">Starting stock</label>
+            <input id="ing-stock" type="number" min="0" step="0.001" value="0" required>
+          </div>
+          <div>
+            <label for="ing-threshold">Low-stock alert below</label>
+            <input id="ing-threshold" type="number" min="0" step="0.001" value="0" required>
+          </div>
+          <button type="submit" class="primary">Add ingredient</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ---------- Food tab ---------- -->
+    <!-- TODO (Manoj): food item list + add / edit / delete form -->
+    <section id="tab-food" class="stack" hidden>
+      <div class="card empty">Food management is coming soon.</div>
+    </section>
+
+    <!-- ---------- Stats tab ---------- -->
+    <!-- TODO (Manoj): one table per /api/staff/stats/... endpoint -->
+    <section id="tab-stats" class="stack" hidden>
+      <div class="card empty">Reports are coming soon.</div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="alert toast" role="status" hidden></div>
+
+</body>
+</html>
