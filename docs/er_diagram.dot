@@ -1,0 +1,82 @@
+// CampusEats v2 - ER diagram (Chen notation)
+// Render: dot -Tpng docs/er_diagram.dot -o docs/er_diagram.png
+//
+// rectangle = entity, double rectangle = weak entity,
+// diamond = relationship (double = identifying), oval = attribute,
+// underlined attribute = primary key, 1 / N = cardinality.
+// Foreign keys are shown by the relationships, not as attributes.
+
+graph CampusEats_ER {
+    graph [layout=dot, rankdir=TB, splines=true, nodesep=0.35, ranksep=0.9,
+           fontname="Helvetica", bgcolor="white", pad=0.3];
+    node  [fontname="Helvetica", fontsize=12];
+    edge  [fontname="Helvetica", fontsize=11, color="#555555"];
+
+    // ---------------- entities ----------------
+    node [shape=box, style="rounded,filled", fillcolor="#dbe9f9", color="#2a6db0", penwidth=1.6, fontsize=13];
+    CANTEENS; USERS; MENU_ITEMS; ORDERS; INVENTORY_TRANSACTIONS;
+    ORDER_ITEMS [shape=box, peripheries=2, fillcolor="#fdebd0", color="#b9770e"];
+
+    // ---------------- relationships ----------------
+    node [shape=diamond, style=filled, fillcolor="#ead7f0", color="#7d3c98", penwidth=1.4, fontsize=12];
+    offers; receives; places; records; causes;
+    contains  [peripheries=2];
+    listed_as [peripheries=2];
+
+    // ---------------- attributes ----------------
+    node [shape=ellipse, style=solid, color="#7f8c8d", penwidth=1.2, fontsize=10];
+
+    c_id   [label=<<U>canteen_id</U>>];  c_name [label="name"];  c_loc [label="location"];
+
+    u_id [label=<<U>user_id</U>>]; u_name [label="name"]; u_email [label="email"];
+    u_pw [label="password_hash"]; u_role [label="role"]; u_phone [label="phone"];
+    u_active [label="is_active"]; u_created [label="created_at"];
+
+    m_id [label=<<U>item_id</U>>]; m_name [label="name"]; m_desc [label="description"];
+    m_cat [label="category"]; m_price [label="price"]; m_stock [label="current_stock"];
+    m_low [label="low_stock_threshold"]; m_status [label="status"]; m_created [label="created_at"];
+
+    o_id [label=<<U>order_id</U>>]; o_status [label="status"]; o_pay [label="payment_status"];
+    o_total [label="total"]; o_created [label="created_at"]; o_updated [label="updated_at"];
+
+    oi_qty [label="quantity"]; oi_price [label="price_at_order"];
+
+    t_id [label=<<U>txn_id</U>>]; t_change [label="change_amount"];
+    t_reason [label="reason"]; t_created [label="created_at"];
+
+    // ---------------- attribute links ----------------
+    edge [color="#95a5a6"];
+    CANTEENS -- {c_id c_name c_loc};
+    USERS -- {u_id u_name u_email u_pw u_role u_phone u_active u_created};
+    MENU_ITEMS -- {m_id m_name m_desc m_cat m_price m_stock m_low m_status m_created};
+    ORDERS -- {o_id o_status o_pay o_total o_created o_updated};
+    ORDER_ITEMS -- {oi_qty oi_price};
+    INVENTORY_TRANSACTIONS -- {t_id t_change t_reason t_created};
+
+    // ---------------- relationship links (with cardinality) ----------------
+    edge [color="#444444", penwidth=1.2];
+    CANTEENS -- offers   [label="1"];   offers   -- MENU_ITEMS  [label="N"];
+    CANTEENS -- receives [label="1"];   receives -- ORDERS      [label="N"];
+    USERS    -- places   [label="1"];   places   -- ORDERS      [label="N"];
+    ORDERS   -- contains [label="1"];   contains -- ORDER_ITEMS [label="N", penwidth=2.4];
+    MENU_ITEMS -- listed_as [label="1"]; listed_as -- ORDER_ITEMS [label="N", penwidth=2.4];
+    MENU_ITEMS -- records [label="1"];  records -- INVENTORY_TRANSACTIONS [label="N", penwidth=2.4];
+    ORDERS -- causes [label="0..1"];    causes -- INVENTORY_TRANSACTIONS [label="N"];
+
+    // ---------------- layout hints ----------------
+    {rank=same; CANTEENS; USERS;}
+    {rank=same; offers; receives; places;}
+    {rank=same; MENU_ITEMS; ORDERS;}
+    {rank=same; listed_as; contains; records; causes;}
+    {rank=same; ORDER_ITEMS; INVENTORY_TRANSACTIONS;}
+
+    // ---------------- legend ----------------
+    legend [shape=plaintext, fontsize=10, label=<
+      <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="2">
+        <TR><TD ALIGN="LEFT"><B>Notation</B></TD></TR>
+        <TR><TD ALIGN="LEFT">rectangle = entity, double rectangle = weak entity</TD></TR>
+        <TR><TD ALIGN="LEFT">diamond = relationship, double diamond = identifying</TD></TR>
+        <TR><TD ALIGN="LEFT"><U>underlined</U> = primary key; thick line = total participation</TD></TR>
+        <TR><TD ALIGN="LEFT">ORDERS–causes is 0..1: restocks have no order</TD></TR>
+      </TABLE>>];
+}

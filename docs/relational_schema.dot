@@ -1,0 +1,73 @@
+// CampusEats v2 - relational schema (tables, keys, foreign keys)
+// Render: dot -Tpng docs/relational_schema.dot -o docs/relational_schema.png
+//
+// underlined = primary key, arrow = foreign key -> referenced table
+
+digraph CampusEats_Schema {
+    graph [rankdir=TB, splines=true, nodesep=0.6, ranksep=1.0,
+           fontname="Helvetica", bgcolor="white", pad=0.3];
+    node  [shape=plaintext, fontname="Helvetica", fontsize=11];
+    edge  [color="#2a6db0", penwidth=1.6, arrowhead=vee, fontname="Helvetica",
+           fontsize=10, fontcolor="#2a6db0"];
+
+    order_items [label=<
+      <TABLE BORDER="2" CELLBORDER="1" CELLSPACING="0" CELLPADDING="6" BGCOLOR="#fdebd0">
+        <TR><TD COLSPAN="4"><B>ORDER_ITEMS</B></TD></TR>
+        <TR><TD PORT="order_id"><U>order_id</U></TD><TD PORT="item_id"><U>item_id</U></TD>
+            <TD>quantity</TD><TD>price_at_order</TD></TR>
+      </TABLE>>];
+
+    inventory_transactions [label=<
+      <TABLE BORDER="2" CELLBORDER="1" CELLSPACING="0" CELLPADDING="6" BGCOLOR="#fdebd0">
+        <TR><TD COLSPAN="6"><B>INVENTORY_TRANSACTIONS</B></TD></TR>
+        <TR><TD><U>txn_id</U></TD><TD PORT="item_id">item_id</TD><TD PORT="order_id">order_id (nullable)</TD>
+            <TD>change_amount</TD><TD>reason</TD><TD>created_at</TD></TR>
+      </TABLE>>];
+
+    orders [label=<
+      <TABLE BORDER="2" CELLBORDER="1" CELLSPACING="0" CELLPADDING="6" BGCOLOR="#dbe9f9">
+        <TR><TD COLSPAN="8"><B>ORDERS</B></TD></TR>
+        <TR><TD PORT="pk"><U>order_id</U></TD><TD PORT="student_id">student_id</TD><TD PORT="canteen_id">canteen_id</TD>
+            <TD>status</TD><TD>payment_status</TD><TD>total</TD><TD>created_at</TD><TD>updated_at</TD></TR>
+      </TABLE>>];
+
+    menu_items [label=<
+      <TABLE BORDER="2" CELLBORDER="1" CELLSPACING="0" CELLPADDING="6" BGCOLOR="#dbe9f9">
+        <TR><TD COLSPAN="10"><B>MENU_ITEMS</B></TD></TR>
+        <TR><TD PORT="pk"><U>item_id</U></TD><TD PORT="canteen_id">canteen_id</TD><TD>name</TD><TD>description</TD>
+            <TD>category</TD><TD>price</TD><TD>current_stock</TD><TD>low_stock_threshold</TD>
+            <TD>status</TD><TD>created_at</TD></TR>
+      </TABLE>>];
+
+    users [label=<
+      <TABLE BORDER="2" CELLBORDER="1" CELLSPACING="0" CELLPADDING="6" BGCOLOR="#dbe9f9">
+        <TR><TD COLSPAN="8"><B>USERS</B></TD></TR>
+        <TR><TD PORT="pk"><U>user_id</U></TD><TD>name</TD><TD>email (unique)</TD><TD>password_hash</TD>
+            <TD>role</TD><TD>phone</TD><TD>is_active</TD><TD>created_at</TD></TR>
+      </TABLE>>];
+
+    canteens [label=<
+      <TABLE BORDER="2" CELLBORDER="1" CELLSPACING="0" CELLPADDING="6" BGCOLOR="#dbe9f9">
+        <TR><TD COLSPAN="3"><B>CANTEENS</B></TD></TR>
+        <TR><TD PORT="pk"><U>canteen_id</U></TD><TD>name (unique)</TD><TD>location</TD></TR>
+      </TABLE>>];
+
+    // foreign keys
+    order_items:order_id:s -> orders:pk:n                     [label="FK"];
+    order_items:item_id:s  -> menu_items:pk:n                 [label="FK"];
+    inventory_transactions:item_id:s  -> menu_items:pk:n      [label="FK"];
+    inventory_transactions:order_id:s -> orders:pk:n          [label="FK", style=dashed];
+    orders:student_id:s    -> users:pk:n                      [label="FK"];
+    orders:canteen_id:s    -> canteens:pk:n                   [label="FK"];
+    menu_items:canteen_id:s -> canteens:pk:n                  [label="FK"];
+
+    {rank=same; order_items; inventory_transactions;}
+    {rank=same; orders; menu_items;}
+    {rank=same; users; canteens;}
+
+    legend [shape=plaintext, fontsize=10, label=<
+      <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="2">
+        <TR><TD ALIGN="LEFT"><U>underlined</U> = primary key (ORDER_ITEMS: composite key)</TD></TR>
+        <TR><TD ALIGN="LEFT">arrow = foreign key to the referenced table; dashed = nullable</TD></TR>
+      </TABLE>>];
+}
