@@ -51,7 +51,7 @@ def category_sales(conn):
         LEFT JOIN order_items oi ON oi.item_id=m.item_id
         LEFT JOIN orders o ON o.order_id=oi.order_id AND o.payment_status='paid' AND o.status<>'cancelled'
         GROUP BY m.category HAVING COALESCE(SUM(CASE WHEN o.order_id IS NOT NULL
-          THEN oi.quantity*oi.price_at_order ELSE 0 END),0)>=0
+          THEN oi.quantity*oi.price_at_order ELSE 0 END),0)>0
         ORDER BY sales_total DESC,m.category""")
 
 

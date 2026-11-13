@@ -18,9 +18,10 @@ pip install -r requirements.txt
 mariadb -u campuseats -pchange_me campuseats < database/schema.sql
 mariadb -u campuseats -pchange_me campuseats < database/seed.sql
 podman run -d --name campuseats-mongo -p 127.0.0.1:27017:27017 docker.io/library/mongo:7
+database/mongo/setup.sh
 ```
 
-On Windows or macOS, use `docker` in place of `podman`. Configure `.env` with the MariaDB and MongoDB settings expected by the backend. `database/reset.sh` reloads the schema and sample data for the configured MariaDB database. The schema drops and recreates its tables, procedures, triggers, and views; use reset only for development data.
+On Windows or macOS, use `docker` in place of `podman`. Start MongoDB before running `database/mongo/setup.sh`; it creates the validated `menu_details` collection, indexes, and one details document per menu item. Configure `.env` with the MariaDB and MongoDB settings expected by the backend. `database/reset.sh` reloads MariaDB and refreshes MongoDB demo details. The schema drops and recreates its tables, procedures, triggers, and views; use reset only for development data.
 
 ## Run
 

@@ -9,7 +9,7 @@ def menu(conn, query=None, category=None):
                     m.name, m.description, m.category, m.price, m.current_stock,
                     m.low_stock_threshold, m.status
              FROM menu_items AS m JOIN canteens AS c ON c.canteen_id=m.canteen_id
-             WHERE m.status='available'"""
+             WHERE m.status IN ('available', 'sold_out')"""
     params = []
     if category:
         sql += " AND m.category = %s"

@@ -36,6 +36,11 @@ async function loadStatsTab() {
       </div>` : ""}
       <div id="report-result-${i}" class="muted">${path.includes("student-items") ? "Choose two students and run the query." : "Loading…"}</div>
     </article>`).join("");
+  if (students.length > 1) {
+    MENU_STAT_REPORTS.forEach(([, path], i) => {
+      if (path.includes("student-items")) $(`report-b-${i}`).value = String(students[1].user_id);
+    });
+  }
   await Promise.all(MENU_STAT_REPORTS.map(async ([, path], i) => {
     if (path.includes("student-items")) return;
     try { $(`report-result-${i}`).innerHTML = reportTable(await API.get(path)); }
@@ -47,6 +52,10 @@ $("stats-grid").addEventListener("click", async (event) => {
   const button = event.target.closest("[data-run-report]");
   if (!button) return;
   const i = Number(button.dataset.runReport);
+  if ($(`report-a-${i}`).value === $(`report-b-${i}`).value) {
+    $(`report-result-${i}`).textContent = "Choose two different students";
+    return;
+  }
   const url = API.withQuery(MENU_STAT_REPORTS[i][1], {
     student_a: $(`report-a-${i}`).value, student_b: $(`report-b-${i}`).value,
   });

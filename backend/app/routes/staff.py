@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from ..database import get_db
 from ..dependencies import require_staff
 from ..services import food as food_service
+from ..services import menu_details as details_service
 from ..services import stats as stats_service
 
 router = APIRouter(prefix="/api/staff", tags=["Staff"], dependencies=[Depends(require_staff)])
@@ -65,7 +66,10 @@ def update_menu_item(body: MenuUpdateIn, item_id: int = Path(gt=0)):
 @router.delete("/menu/{item_id}")
 def delete_menu_item(item_id: int = Path(gt=0)):
     with get_db() as conn:
-        return food_service.delete_food(conn, item_id)
+        result = food_service.delete_food(conn, item_id)
+        if result["deleted"]:
+            details_service.delete_details_if_any(item_id)
+        return result
 
 
 @router.get("/stats/daily-sales")

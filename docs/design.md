@@ -2,6 +2,10 @@
 
 ## ER diagram
 
+August-style Graphviz image: [PNG](er_diagram.png) · [DOT source](er_diagram.dot).
+
+![CampusEats v2 Chen-style ER diagram](er_diagram.png)
+
 ```mermaid
 erDiagram
     USERS ||--o{ ORDERS : places
@@ -68,6 +72,10 @@ erDiagram
 Primary keys are identified by `PK` in the ERD and underlined in the relational schema below. `INVENTORY_TRANSACTIONS.order_id` is nullable for restocks and other non-order stock changes. MongoDB dish details are outside this relational ER diagram.
 
 ## Relational schema
+
+August-style relational schema image: [PNG](relational_schema.png) · [DOT source](relational_schema.dot).
+
+![CampusEats v2 relational schema and foreign keys](relational_schema.png)
 
 - USERS(<u>user_id</u> PK, name, email UNIQUE, password_hash, role, phone, is_active, created_at)
 - CANTEENS(<u>canteen_id</u> PK, name UNIQUE, location)
