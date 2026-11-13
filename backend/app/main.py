@@ -11,8 +11,9 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from pymongo.errors import ConnectionFailure, PyMongoError, WriteError
 
-from .routes import auth, orders, public, staff
+from .routes import auth, details, orders, public, staff
 
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 
@@ -23,6 +24,8 @@ app.include_router(auth.router)
 app.include_router(auth.admin_router)
 app.include_router(orders.router)
 app.include_router(orders.staff_router)
+app.include_router(details.public_router)
+app.include_router(details.staff_router)
 # Manoj
 app.include_router(public.router)
 app.include_router(staff.router)
@@ -71,6 +74,17 @@ async def mysql_error_handler(request: Request, exc: pymysql.MySQLError):
 
     print(f"Unhandled database error {code}: {message}")
     return JSONResponse(status_code=500, content={"detail": "Database error"})
+
+
+@app.exception_handler(PyMongoError)
+async def mongo_error_handler(request: Request, exc: PyMongoError):
+    if isinstance(exc, ConnectionFailure):  # includes ServerSelectionTimeoutError
+        return JSONResponse(status_code=503,
+                            content={"detail": "Dish details are unavailable: MongoDB is not running"})
+    if isinstance(exc, WriteError) and exc.code == 121:  # $jsonSchema validator rejected it
+        return JSONResponse(status_code=400, content={"detail": "Invalid dish details"})
+    print(f"Unhandled MongoDB error: {exc}")
+    return JSONResponse(status_code=500, content={"detail": "MongoDB error"})
 
 
 @app.exception_handler(RequestValidationError)
