@@ -12,12 +12,18 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from .routes import public, staff
+from .routes import auth, orders, public, staff
 
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 
 app = FastAPI(title="CampusEats", description="Canteen pre-ordering API")
 
+# Mann
+app.include_router(auth.router)
+app.include_router(auth.admin_router)
+app.include_router(orders.router)
+app.include_router(orders.staff_router)
+# Manoj
 app.include_router(public.router)
 app.include_router(staff.router)
 
@@ -28,7 +34,7 @@ app.include_router(staff.router)
 FK_PARENT_MISSING = 1452
 FK_CHILD_EXISTS = 1451
 DUPLICATE_KEY = 1062
-SIGNAL_ERROR = 1644      # raised by SIGNAL in accept_order / cancel_order
+SIGNAL_ERROR = 1644      # raised by SIGNAL in place_order / cancel_order
 CHECK_FAILED = 4025      # MariaDB CHECK constraint
 CHECK_FAILED_MYSQL = 3819
 
@@ -40,10 +46,17 @@ async def mysql_error_handler(request: Request, exc: pymysql.MySQLError):
 
     if code == SIGNAL_ERROR:
         # message written by our stored procedure, e.g. "Not enough Paneer ..."
-        status = 404 if message == "Order not found" else 409
+        if message.endswith("not found"):
+            status = 404
+        elif message.startswith("Only students") or "disabled" in message:
+            status = 403
+        else:
+            status = 409
         return JSONResponse(status_code=status, content={"detail": message})
     if code == DUPLICATE_KEY:
-        return JSONResponse(status_code=409, content={"detail": "That name already exists"})
+        detail = ("An account with this email already exists" if "email" in message
+                  else "That name already exists")
+        return JSONResponse(status_code=409, content={"detail": detail})
     if code in (CHECK_FAILED, CHECK_FAILED_MYSQL):
         return JSONResponse(status_code=400, content={"detail": f"Invalid value: {message}"})
     if code == FK_CHILD_EXISTS:
@@ -77,7 +90,7 @@ async def validation_error_handler(request: Request, exc: RequestValidationError
 
 @app.get("/", include_in_schema=False)
 def home():
-    return RedirectResponse("/student.html")
+    return RedirectResponse("/login.html")
 
 
 @app.get("/staff", include_in_schema=False)
