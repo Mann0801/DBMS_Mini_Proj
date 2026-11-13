@@ -18,6 +18,8 @@ async function loadMenu() {
   });
   try {
     menuItems = await API.get(menuPath);
+    const allowed = await DishDetails.allowedIds();  // (Mann) MongoDB diet filters
+    if (allowed) menuItems = menuItems.filter((item) => allowed.has(item.id));
     renderMenu();
   } catch (err) {
     message.textContent = err.message;
@@ -32,6 +34,7 @@ function renderMenu() {
       <div class="row"><span class="badge">${escapeHtml(item.category_name)}</span><span class="spacer"></span><strong>${formatMoney(item.price)}</strong></div>
       <h2>${escapeHtml(item.name)}</h2>
       <p class="muted">${escapeHtml(item.description || "A fresh canteen favourite.")}</p>
+      ${DishDetails.chips(item.id)}
       <button class="primary" data-add="${item.id}">Add to cart</button>
     </article>`).join("") : '<div class="card empty">No available dishes match your search.</div>';
 }
@@ -124,8 +127,12 @@ $("track-form").addEventListener("submit", async (event) => {
   }
 });
 
+// (Mann) MongoDB diet filters
+["veg-only", "avoid-allergen", "max-spice"].forEach((id) =>
+  $(id).addEventListener("change", loadMenu));
+
 renderCart();
-Promise.all([loadCategories(), loadMenu()]).catch((err) => {
+Promise.all([loadCategories(), DishDetails.load().then(loadMenu)]).catch((err) => {
   $("menu-message").textContent = err.message;
   $("menu-message").hidden = false;
 });

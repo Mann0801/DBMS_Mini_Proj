@@ -101,11 +101,9 @@ def place_order(conn, name, phone, items):
             if not foods[fid]["is_available"]:
                 raise HTTPException(400, f"{foods[fid]['name']} is not available right now")
 
-        total = sum(foods[fid]["price"] * qty for fid, qty in wanted.items())
-
         cur.execute(
-            "INSERT INTO orders (customer_name, customer_phone, total) VALUES (%s, %s, %s)",
-            (name, phone, total),
+            "INSERT INTO orders (customer_name, customer_phone) VALUES (%s, %s)",
+            (name, phone),
         )
         order_id = cur.lastrowid
 
@@ -113,6 +111,12 @@ def place_order(conn, name, phone, items):
             "INSERT INTO order_items (order_id, food_item_id, quantity, price) "
             "VALUES (%s, %s, %s, %s)",
             [(order_id, fid, qty, foods[fid]["price"]) for fid, qty in wanted.items()],
+        )
+
+        # total computed by the stored function order_total()
+        cur.execute(
+            "UPDATE orders SET total = order_total(%s) WHERE id = %s",
+            (order_id, order_id),
         )
 
     return get_order_by_id(conn, order_id)

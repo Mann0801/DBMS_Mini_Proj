@@ -11,6 +11,7 @@ from ..services import inventory as inventory_service
 from ..services import order as order_service
 from ..services import food as food_service
 from ..services import stats as stats_service
+from ..services import food_details as details_service
 
 router = APIRouter(
     prefix="/api/staff",
@@ -97,6 +98,12 @@ def low_stock():
         return inventory_service.low_stock(conn)
 
 
+@router.get("/ingredients/dish-availability")
+def dish_availability():
+    with get_db() as conn:
+        return inventory_service.dish_availability(conn)
+
+
 @router.post("/ingredients", status_code=201)
 def add_ingredient(body: IngredientIn):
     with get_db() as conn:
@@ -146,7 +153,12 @@ def update_food(body: FoodIn, food_id: int = Path(gt=0)):
 @router.delete("/food/{food_id}")
 def delete_food(food_id: int = Path(gt=0)):
     with get_db() as conn:
-        return food_service.delete_food(conn, food_id)
+        result = food_service.delete_food(conn, food_id)
+        # (Mann) a dish removed from MariaDB also loses its MongoDB document.
+        # Inside the with-block: if MongoDB fails, the SQL delete rolls back.
+        if result["deleted"]:
+            details_service.delete_details_if_any(food_id)
+        return result
 
 
 # ---------------------------------------------------------------- stats (Manoj)

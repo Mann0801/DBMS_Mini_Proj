@@ -67,6 +67,39 @@ def add_stock(conn, ingredient_id, amount):
     return get_ingredient(conn, ingredient_id)
 
 
+def dish_availability(conn):
+    """How many portions of each dish the current stock can make.
+
+    - portions_available(f.id) is a stored function
+    - missing_ingredients is a CORRELATED subquery: it runs once per dish,
+      using the outer row's f.id
+    - can_make uses a correlated NOT EXISTS
+    """
+    with conn.cursor() as cur:
+        cur.execute("""
+            SELECT f.id AS food_item_id,
+                   f.name,
+                   COALESCE(portions_available(f.id), 0) AS portions_left,
+                   (SELECT GROUP_CONCAT(i.name ORDER BY i.name SEPARATOR ', ')
+                    FROM recipes r
+                    JOIN ingredients i ON i.id = r.ingredient_id
+                    WHERE r.food_item_id = f.id          -- outer reference
+                      AND i.stock < r.quantity_needed) AS missing_ingredients,
+                   NOT EXISTS (SELECT 1
+                               FROM recipes r
+                               JOIN ingredients i ON i.id = r.ingredient_id
+                               WHERE r.food_item_id = f.id
+                                 AND i.stock < r.quantity_needed) AS can_make
+            FROM food_items f
+            WHERE f.is_available = TRUE
+            ORDER BY portions_left, f.name
+        """)
+        rows = cur.fetchall()
+    for r in rows:
+        r["can_make"] = bool(r["can_make"])
+    return rows
+
+
 def transactions(conn, ingredient_id, limit=50):
     """Recent stock history for one ingredient."""
     get_ingredient(conn, ingredient_id)  # 404 if it doesn't exist

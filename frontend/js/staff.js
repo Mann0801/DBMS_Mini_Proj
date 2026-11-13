@@ -266,11 +266,27 @@ $("refresh-btn").addEventListener("click", loadOrders);
 
 async function loadIngredients() {
   try {
-    const rows = await API.get("/api/staff/ingredients", { staff: true });
+    const [rows, availability] = await Promise.all([
+      API.get("/api/staff/ingredients", { staff: true }),
+      API.get("/api/staff/ingredients/dish-availability", { staff: true }),
+    ]);
     renderIngredients(rows);
+    renderAvailability(availability);
   } catch (err) {
     handleError(err);
   }
+}
+
+// portions_available() function + correlated subquery, from the backend
+function renderAvailability(rows) {
+  $("availability-body").innerHTML = rows.length
+    ? rows.map((r) => `
+      <tr class="${r.can_make ? "" : "low"}">
+        <td><strong>${escapeHtml(r.name)}</strong></td>
+        <td class="num">${r.can_make ? r.portions_left : '<span class="badge low">0</span>'}</td>
+        <td>${r.missing_ingredients ? escapeHtml(r.missing_ingredients) : '<span class="muted">—</span>'}</td>
+      </tr>`).join("")
+    : `<tr><td colspan="3" class="empty">No dishes.</td></tr>`;
 }
 
 function renderIngredients(rows) {

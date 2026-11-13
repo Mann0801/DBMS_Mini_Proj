@@ -6,6 +6,7 @@
   <title>CampusEats — Order food</title>
   <link rel="stylesheet" href="/css/styles.css">
   <script src="/js/api.js" defer></script>
+  <script src="/js/dish-details.js" defer></script>
   <script src="/js/student.js" defer></script>
 </head>
 <body class="student-page">
@@ -18,6 +19,22 @@
         <div><label for="category-filter">Category</label><select id="category-filter"><option value="">All categories</option></select></div>
         <button type="submit">Search</button>
       </form>
+      <!-- (Mann) diet filters: answered by MongoDB -->
+      <div id="diet-filters" class="diet-filters">
+        <label class="check"><input type="checkbox" id="veg-only"> Veg only</label>
+        <select id="avoid-allergen" aria-label="Allergy filter">
+          <option value="">No allergy filter</option>
+          <option value="dairy">Avoid dairy</option>
+          <option value="gluten">Avoid gluten</option>
+          <option value="nuts">Avoid nuts</option>
+          <option value="egg">Avoid egg</option>
+        </select>
+        <select id="max-spice" aria-label="Spice filter">
+          <option value="">Any spice level</option>
+          <option value="1">Mild or less</option>
+          <option value="0">Not spicy</option>
+        </select>
+      </div>
       <div id="menu-message" class="alert error" hidden></div>
       <div id="menu-grid" class="menu-grid" aria-live="polite"></div>
     </section>

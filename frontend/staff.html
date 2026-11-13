@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/css/styles.css">
   <script src="/js/api.js" defer></script>
   <script src="/js/staff.js" defer></script>
+  <script src="/js/staff-details.js" defer></script>
 </head>
 <body>
 
@@ -37,6 +38,7 @@
       <button class="tab active" data-tab="orders" role="tab">Orders</button>
       <button class="tab" data-tab="ingredients" role="tab">Ingredients</button>
       <button class="tab" data-tab="food" role="tab">Food</button>
+      <button class="tab" data-tab="details" role="tab">Dish Details</button>
       <button class="tab" data-tab="stats" role="tab">Stats</button>
     </nav>
 
@@ -92,6 +94,19 @@
         </div>
       </div>
 
+      <div class="card">
+        <div class="row" style="margin-bottom: 8px;">
+          <h2>What can we make right now?</h2>
+        </div>
+        <p class="muted" style="margin-top:0">Portions each dish's current stock allows (stored function + correlated subquery).</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Dish</th><th class="num">Portions left</th><th>Short of</th></tr></thead>
+            <tbody id="availability-body"></tbody>
+          </table>
+        </div>
+      </div>
+
       <form id="add-ingredient-form" class="card stack">
         <h2>Add a new ingredient</h2>
         <div class="form-grid">
@@ -136,6 +151,71 @@
     </section>
 
     <!-- ---------- Stats tab ---------- -->
+    <!-- ---------- Dish Details tab (Mann, MongoDB) ---------- -->
+    <section id="tab-details" class="stack" hidden>
+      <div class="card stack">
+        <div class="row">
+          <h2>Dish details <span class="muted" style="font-weight:400">· stored in MongoDB</span></h2>
+          <div class="spacer"></div>
+          <button id="details-refresh-btn" class="small">Refresh</button>
+        </div>
+        <div id="details-summary" class="count-chips"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Dish</th><th>Type</th><th>Spice</th><th>Allergens</th><th>Tags</th><th>Special</th><th>Other fields</th><th></th></tr>
+            </thead>
+            <tbody id="details-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <form id="details-form" class="card stack" hidden>
+        <h2 id="details-form-title">Edit details</h2>
+        <div class="form-grid">
+          <div>
+            <label for="det-dietary">Type</label>
+            <select id="det-dietary" required>
+              <option value="veg">Veg</option>
+              <option value="vegan">Vegan</option>
+              <option value="egg">Egg</option>
+              <option value="non-veg">Non-veg</option>
+            </select>
+          </div>
+          <div>
+            <label for="det-spice">Spice level</label>
+            <select id="det-spice">
+              <option value="0">0 · not spicy</option>
+              <option value="1">1 · mild</option>
+              <option value="2">2 · medium</option>
+              <option value="3">3 · hot</option>
+            </select>
+          </div>
+          <div>
+            <label for="det-calories">Calories</label>
+            <input id="det-calories" type="number" min="0" max="5000" step="1">
+          </div>
+          <div>
+            <label for="det-tags">Tags (comma separated)</label>
+            <input id="det-tags" maxlength="200" placeholder="bestseller, fried">
+          </div>
+          <div>
+            <label for="det-special">Today's special note</label>
+            <input id="det-special" maxlength="200" placeholder="optional">
+          </div>
+        </div>
+        <fieldset class="allergen-box">
+          <legend>Allergens</legend>
+          <div id="det-allergens" class="row"></div>
+        </fieldset>
+        <p id="det-extra" class="muted" hidden></p>
+        <div class="row">
+          <button type="submit" class="primary">Save to MongoDB</button>
+          <button type="button" id="details-cancel">Cancel</button>
+        </div>
+      </form>
+    </section>
+
     <section id="tab-stats" class="stack" hidden>
       <div class="row"><h2>Reports and statistics</h2><div class="spacer"></div><button id="stats-refresh-btn" class="small">Refresh</button></div>
       <div id="stats-grid" class="stats-grid"></div>

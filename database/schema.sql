@@ -20,6 +20,8 @@ DROP VIEW IF EXISTS v_top_items;
 
 DROP PROCEDURE IF EXISTS accept_order;
 DROP PROCEDURE IF EXISTS cancel_order;
+DROP FUNCTION IF EXISTS order_total;
+DROP FUNCTION IF EXISTS portions_available;
 DROP TRIGGER IF EXISTS trg_ingredients_stock_log;
 
 DROP TABLE IF EXISTS inventory_transactions;
@@ -305,6 +307,38 @@ BEGIN
 
     COMMIT;
     SET @txn_reason = NULL, @txn_order_id = NULL;
+END //
+
+-- ---------------------------------------------------------------------
+-- Function order_total: total of an order from its line items.
+-- Used by the backend right after an order's items are inserted.
+-- ---------------------------------------------------------------------
+CREATE FUNCTION order_total(p_order_id INT)
+RETURNS DECIMAL(10, 2)
+READS SQL DATA
+BEGIN
+    DECLARE v_total DECIMAL(10, 2);
+    SELECT COALESCE(SUM(quantity * price), 0) INTO v_total
+    FROM order_items
+    WHERE order_id = p_order_id;
+    RETURN v_total;
+END //
+
+-- ---------------------------------------------------------------------
+-- Function portions_available: how many portions of a dish the current
+-- stock can make = the smallest FLOOR(stock / needed) over its recipe.
+-- Returns NULL if the dish has no recipe.
+-- ---------------------------------------------------------------------
+CREATE FUNCTION portions_available(p_food_item_id INT)
+RETURNS INT
+READS SQL DATA
+BEGIN
+    DECLARE v_portions INT;
+    SELECT MIN(FLOOR(i.stock / r.quantity_needed)) INTO v_portions
+    FROM recipes r
+    JOIN ingredients i ON i.id = r.ingredient_id
+    WHERE r.food_item_id = p_food_item_id;
+    RETURN v_portions;
 END //
 
 DELIMITER ;
