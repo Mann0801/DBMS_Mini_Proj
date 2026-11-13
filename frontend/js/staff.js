@@ -144,7 +144,9 @@ function filteredOrders() {
   const f = $("status-filter").value;
   let list;
   if (f === "all") list = allOrders;
-  else if (f === "active") list = allOrders.filter((o) => ACTIVE.includes(o.status));
+  // "active" = still needs staff action, including collected-but-unpaid
+  else if (f === "active") list = allOrders.filter((o) =>
+    ACTIVE.includes(o.status) || (o.status === "collected" && o.payment_status === "unpaid"));
   else if (f === "unpaid") list = allOrders.filter((o) => o.payment_status === "unpaid" && !["placed", "rejected"].includes(o.status));
   else list = allOrders.filter((o) => o.status === f);
 
