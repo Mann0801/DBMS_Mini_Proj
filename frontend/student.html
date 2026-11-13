@@ -1,49 +1,24 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CampusEats — Order food</title>
-  <link rel="stylesheet" href="/css/styles.css">
-  <script src="/js/api.js" defer></script>
-  <script src="/js/student.js" defer></script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CampusEats — Student</title><link rel="stylesheet" href="/css/styles.css">
+  <script src="/js/api.js" defer></script><script src="/js/student.js" defer></script>
 </head>
 <body class="student-page">
-  <header class="topbar"><div class="container"><div class="brand">CampusEats <small>Campus canteen</small></div><a class="btn" href="/staff">Staff</a></div></header>
+  <header class="topbar"><div class="container"><div class="brand">CampusEats <small>Main Canteen</small></div>
+    <div class="row"><span>Hi, <strong id="welcome-name"></strong></span><button id="logout-btn" class="small">Log out</button></div></div></header>
   <main class="container student-layout">
-    <section class="student-menu stack">
-      <div><h1>Order from the canteen</h1><p class="muted">Choose your favourites and collect your order when it is ready.</p></div>
-      <form id="menu-filters" class="menu-filters">
-        <div><label for="menu-search">Search menu</label><input id="menu-search" type="search" maxlength="100" placeholder="Search dishes"></div>
-        <div><label for="category-filter">Category</label><select id="category-filter"><option value="">All categories</option></select></div>
-        <button type="submit">Search</button>
-      </form>
-      <div id="menu-message" class="alert error" hidden></div>
-      <div id="menu-grid" class="menu-grid" aria-live="polite"></div>
+    <section class="student-menu stack"><div><h1>Today's menu</h1><p class="muted">Order ahead and pay at the counter.</p></div>
+      <form id="menu-filters" class="menu-filters"><div><label for="menu-search">Search dishes</label><input id="menu-search" type="search" maxlength="100" placeholder="Try paneer"></div>
+        <div><label for="category-filter">Category</label><select id="category-filter"><option value="">All categories</option></select></div><button type="submit">Search</button></form>
+      <div id="menu-message" class="alert error" hidden></div><div id="menu-grid" class="menu-grid" aria-live="polite"></div>
+      <section class="card stack"><h2>My orders</h2><div id="orders-list" class="orders-grid" aria-live="polite"></div></section>
     </section>
-
-    <aside class="student-side stack">
-      <section class="card stack">
-        <h2>Your cart</h2>
-        <div id="cart-items"><p class="muted">Your cart is empty.</p></div>
-        <div class="cart-total"><span>Total</span><strong id="cart-total">₹0</strong></div>
-        <form id="checkout-form" class="stack">
-          <div><label for="customer-name">Your name</label><input id="customer-name" maxlength="100" required autocomplete="name"></div>
-          <div><label for="customer-phone">Mobile number</label><input id="customer-phone" type="tel" inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" required autocomplete="tel" placeholder="10 digit number"></div>
-          <button class="primary" type="submit">Place order</button>
-        </form>
-        <div id="checkout-message" class="alert" hidden></div>
-      </section>
-      <section class="card stack">
-        <h2>Track an order</h2>
-        <form id="track-form" class="stack">
-          <div><label for="track-order-id">Order number</label><input id="track-order-id" type="number" min="1" step="1" required></div>
-          <div><label for="track-phone">Mobile number</label><input id="track-phone" type="tel" inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10" required></div>
-          <button type="submit">Track order</button>
-        </form>
-        <div id="track-result" aria-live="polite"></div>
-      </section>
-    </aside>
+    <aside class="student-side"><section class="card stack"><h2>Your cart</h2><div id="cart-items"></div>
+      <div class="cart-total"><span>Total</span><strong id="cart-total">₹0</strong></div>
+      <form id="checkout-form"><button id="checkout-button" class="primary" type="submit" disabled>Place order</button></form>
+      <div id="checkout-message" class="alert" hidden></div><p class="muted">Payment is collected at the counter.</p>
+    </section></aside>
   </main>
-</body>
-</html>
+</body></html>

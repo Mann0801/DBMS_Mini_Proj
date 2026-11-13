@@ -22,6 +22,7 @@
 }
 
 * { box-sizing: border-box; }
+html, body { max-width: 100%; overflow-x: hidden; }
 
 body {
   margin: 0;
@@ -189,6 +190,9 @@ tr.low td { background: var(--danger-soft); }
 .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
 .food-card { display: flex; flex-direction: column; gap: 12px; }
 .food-card p { margin: 0; flex: 1; }
+.food-card.sold-out { opacity: .55; filter: grayscale(1); }
+.stock-note { color: var(--warn); font-weight: 700; }
+.order-history p { margin-bottom: 0; }
 .student-side { position: sticky; top: 74px; }
 .cart-line { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .quantity-control { display: flex; align-items: center; gap: 8px; }
@@ -205,6 +209,9 @@ tr.low td { background: var(--danger-soft); }
 }
 @media (max-width: 520px) {
   .menu-filters { grid-template-columns: 1fr; }
+  .student-layout { padding-left: 12px; padding-right: 12px; }
+  .cart-line { align-items: center; }
+  .quantity-control { gap: 5px; }
 }
 
 /* Mann: dish details (MongoDB) */

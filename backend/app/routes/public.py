@@ -1,9 +1,4 @@
-"""Public menu routes (Manoj).
-
-TODO (Manoj, v2): switch food.py to the menu_items table
-(category is a text column now) and the /api/menu/categories path.
-Order routes moved to routes/orders.py (Mann).
-"""
+"""Public menu routes (Manoj). Order routes are in routes/orders.py (Mann)."""
 
 from fastapi import APIRouter, Query
 
@@ -16,12 +11,12 @@ router = APIRouter(prefix="/api", tags=["Students"])
 
 @router.get("/menu")
 def menu(q: str | None = Query(default=None, max_length=100),
-         category: int | None = Query(default=None, gt=0)):
+         category: str | None = Query(default=None, max_length=50)):
     with get_db() as conn:
         return food_service.menu(conn, q, category)
 
 
-@router.get("/categories")
+@router.get("/menu/categories")
 def categories():
     with get_db() as conn:
         return food_service.categories(conn)

@@ -1,9 +1,6 @@
-"""Staff menu and stats routes (Manoj). Need a staff or admin login.
+"""Staff menu and statistics routes, protected by Mann's staff role check."""
 
-TODO (Manoj, v2): switch food.py / stats.py to the v2 tables
-(menu_items, users, orders) and rename /food to /menu.
-Order and stock routes moved to routes/orders.py and routes/stock.py (Mann).
-"""
+from typing import Literal
 
 from fastapi import APIRouter, Depends, Path, Query
 from pydantic import BaseModel, Field
@@ -13,56 +10,63 @@ from ..dependencies import require_staff
 from ..services import food as food_service
 from ..services import stats as stats_service
 
-router = APIRouter(
-    prefix="/api/staff",
-    tags=["Staff"],
-    dependencies=[Depends(require_staff)],
-)
+router = APIRouter(prefix="/api/staff", tags=["Staff"], dependencies=[Depends(require_staff)])
 
 
-# ---------------------------------------------------------------- request bodies
-
-class FoodIn(BaseModel):
+class MenuCreateIn(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     description: str | None = Field(default=None, max_length=255)
+    category: str = Field(min_length=1, max_length=50)
     price: float = Field(gt=0, le=999999.99)
-    category_id: int = Field(gt=0)
-    is_available: bool = True
+    current_stock: int = Field(ge=0)
+    low_stock_threshold: int = Field(default=5, ge=0)
 
 
-# ---------------------------------------------------------------- food items (Manoj)
+class MenuUpdateIn(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    description: str | None = Field(default=None, max_length=255)
+    category: str = Field(min_length=1, max_length=50)
+    price: float = Field(gt=0, le=999999.99)
+    status: Literal["available", "sold_out", "delisted"]
 
-@router.get("/food")
-def list_food():
+
+@router.get("/students")
+def list_students():
+    with get_db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT user_id, name FROM users WHERE role='student' AND is_active=TRUE ORDER BY name")
+            return cur.fetchall()
+
+
+@router.get("/menu")
+def list_menu():
     with get_db() as conn:
         return food_service.list_food(conn)
 
 
-@router.post("/food", status_code=201)
-def create_food(body: FoodIn):
+@router.post("/menu", status_code=201)
+def create_menu_item(body: MenuCreateIn):
     with get_db() as conn:
         return food_service.create_food(
             conn, body.name.strip(), body.description.strip() if body.description else None,
-            body.price, body.category_id, body.is_available,
+            body.category.strip(), body.price, body.current_stock, body.low_stock_threshold,
         )
 
 
-@router.put("/food/{food_id}")
-def update_food(body: FoodIn, food_id: int = Path(gt=0)):
+@router.put("/menu/{item_id}")
+def update_menu_item(body: MenuUpdateIn, item_id: int = Path(gt=0)):
     with get_db() as conn:
         return food_service.update_food(
-            conn, food_id, body.name.strip(), body.description.strip() if body.description else None,
-            body.price, body.category_id, body.is_available,
+            conn, item_id, body.name.strip(), body.description.strip() if body.description else None,
+            body.category.strip(), body.price, body.status,
         )
 
 
-@router.delete("/food/{food_id}")
-def delete_food(food_id: int = Path(gt=0)):
+@router.delete("/menu/{item_id}")
+def delete_menu_item(item_id: int = Path(gt=0)):
     with get_db() as conn:
-        return food_service.delete_food(conn, food_id)
+        return food_service.delete_food(conn, item_id)
 
-
-# ---------------------------------------------------------------- stats (Manoj)
 
 @router.get("/stats/daily-sales")
 def stats_daily_sales():
@@ -100,22 +104,28 @@ def stats_above_average_orders():
         return stats_service.above_average_orders(conn)
 
 
-@router.get("/stats/shared-ingredients")
-def stats_shared_ingredients():
+@router.get("/stats/student-items/both")
+def stats_student_items_both(student_a: int = Query(gt=0), student_b: int = Query(gt=0)):
     with get_db() as conn:
-        return stats_service.shared_ingredients(conn)
+        return stats_service.student_item_set(conn, student_a, student_b, "both")
 
 
-@router.get("/stats/single-dish-ingredients")
-def stats_single_dish_ingredients():
+@router.get("/stats/student-items/a-only")
+def stats_student_items_a_only(student_a: int = Query(gt=0), student_b: int = Query(gt=0)):
     with get_db() as conn:
-        return stats_service.single_dish_ingredients(conn)
+        return stats_service.student_item_set(conn, student_a, student_b, "a_only")
 
 
-@router.get("/stats/item-sales")
-def stats_item_sales():
+@router.get("/stats/top-spenders-by-category")
+def stats_top_spenders_by_category():
     with get_db() as conn:
-        return stats_service.item_sales(conn)
+        return stats_service.top_spenders_by_category(conn)
+
+
+@router.get("/stats/reports/available-items")
+def stats_available_items_report():
+    with get_db() as conn:
+        return stats_service.available_view(conn)
 
 
 @router.get("/stats/reports/sales")
@@ -134,9 +144,3 @@ def stats_low_stock_report():
 def stats_unpaid_orders_report():
     with get_db() as conn:
         return stats_service.unpaid_orders(conn)
-
-
-@router.get("/stats/reports/top-items")
-def stats_top_items_report():
-    with get_db() as conn:
-        return stats_service.view_top_items(conn)

@@ -8,8 +8,8 @@
   <script src="/js/api.js" defer></script>
   <script src="/js/staff.js" defer></script>
   <script src="/js/staff-details.js" defer></script>
-  <!-- TODO (Manoj): add <script src="/js/staff-menu.js" defer></script>
-       and <script src="/js/staff-stats.js" defer></script> here -->
+  <script src="/js/staff-menu.js" defer></script>
+  <script src="/js/staff-stats.js" defer></script>
 </head>
 <body>
 
@@ -152,15 +152,30 @@
     </section>
 
     <!-- ---------- Menu tab (Manoj) ---------- -->
-    <!-- TODO (Manoj): menu list + add / edit / delist form (js/staff-menu.js) -->
     <section id="tab-menu" class="stack" hidden>
-      <div class="card empty">Menu management is coming soon.</div>
+      <div class="card">
+        <div class="row" style="margin-bottom: 8px"><h2>Menu items</h2><div class="spacer"></div><button id="menu-refresh-btn" class="small">Refresh</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Name</th><th>Category</th><th class="num">Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead><tbody id="menu-body"></tbody></table></div>
+      </div>
+      <form id="menu-form" class="card stack">
+        <h2 id="menu-form-title">Add a menu item</h2><input id="menu-item-id" type="hidden">
+        <div class="form-grid">
+          <div><label for="menu-name">Name</label><input id="menu-name" required maxlength="100"></div>
+          <div><label for="menu-category">Category</label><input id="menu-category" list="menu-category-options" required maxlength="50"><datalist id="menu-category-options"></datalist></div>
+          <div><label for="menu-price">Price (₹)</label><input id="menu-price" type="number" min="0.01" step="0.01" required></div>
+          <div><label for="menu-description">Description</label><input id="menu-description" maxlength="255"></div>
+          <div id="menu-stock-field"><label for="menu-stock">Starting stock</label><input id="menu-stock" type="number" min="0" step="1" value="10" required></div>
+          <div id="menu-threshold-field"><label for="menu-threshold">Low-stock threshold</label><input id="menu-threshold" type="number" min="0" step="1" value="5" required></div>
+          <div><label for="menu-status">Status</label><select id="menu-status"><option value="available">Available</option><option value="sold_out">Sold out</option><option value="delisted">Delisted</option></select></div>
+          <div class="row"><button id="menu-save-btn" type="submit" class="primary">Add menu item</button><button id="menu-cancel-edit" type="button" hidden>Cancel edit</button></div>
+        </div>
+      </form>
     </section>
 
     <!-- ---------- Stats tab (Manoj) ---------- -->
-    <!-- TODO (Manoj): one table per /api/staff/stats/... endpoint (js/staff-stats.js) -->
     <section id="tab-stats" class="stack" hidden>
-      <div class="card empty">Reports are coming soon.</div>
+      <div class="row"><h2>Reports and statistics</h2><div class="spacer"></div><button id="stats-refresh-btn" class="small">Refresh</button></div>
+      <div id="stats-grid" class="stats-grid"></div>
     </section>
 
     <!-- ---------- Admin tab (Mann, admin only) ---------- -->
