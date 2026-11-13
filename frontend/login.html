@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CampusEats Login</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="/js/api.js" defer></script>
+  <script src="/js/login.js" defer></script>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container">
+      <div class="brand">CampusEats <small>Canteen pre-ordering</small></div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="auth-box stack">
+      <div id="auth-message" class="alert" hidden></div>
+
+      <nav class="tabs auth-tabs" role="tablist">
+        <button class="tab active" data-auth-tab="login" role="tab">Log in</button>
+        <button class="tab" data-auth-tab="signup" role="tab">Sign up</button>
+      </nav>
+
+      <!-- ---------- log in ---------- -->
+      <form id="login-form" class="card stack">
+        <h2>Welcome back</h2>
+        <div>
+          <label for="login-email">Email</label>
+          <input id="login-email" type="email" autocomplete="username" required maxlength="120">
+        </div>
+        <div>
+          <label for="login-password">Password</label>
+          <input id="login-password" type="password" autocomplete="current-password" required maxlength="100">
+        </div>
+        <button type="submit" class="primary">Log in</button>
+        <p class="muted small-text">Students and canteen staff both log in here.</p>
+      </form>
+
+      <!-- ---------- sign up (students) ---------- -->
+      <form id="signup-form" class="card stack" hidden>
+        <h2>Create a student account</h2>
+        <div>
+          <label for="signup-name">Full name</label>
+          <input id="signup-name" autocomplete="name" required maxlength="100">
+        </div>
+        <div>
+          <label for="signup-email">Email</label>
+          <input id="signup-email" type="email" autocomplete="email" required maxlength="120">
+        </div>
+        <div>
+          <label for="signup-phone">Mobile number</label>
+          <input id="signup-phone" type="tel" inputmode="numeric" pattern="[6-9][0-9]{9}"
+                 maxlength="10" required autocomplete="tel" placeholder="10 digit number">
+        </div>
+        <div>
+          <label for="signup-password">Password (at least 8 characters)</label>
+          <input id="signup-password" type="password" autocomplete="new-password"
+                 minlength="8" required maxlength="100">
+        </div>
+        <button type="submit" class="primary">Create account</button>
+        <p class="muted small-text">Staff accounts are created by the canteen admin.</p>
+      </form>
+    </div>
+  </main>
+
+</body>
+</html>

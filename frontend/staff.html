@@ -7,37 +7,31 @@
   <link rel="stylesheet" href="/css/styles.css">
   <script src="/js/api.js" defer></script>
   <script src="/js/staff.js" defer></script>
+  <script src="/js/staff-details.js" defer></script>
+  <!-- TODO (Manoj): add <script src="/js/staff-menu.js" defer></script>
+       and <script src="/js/staff-stats.js" defer></script> here -->
 </head>
 <body>
 
   <header class="topbar">
     <div class="container">
       <div class="brand">CampusEats <small>Staff</small></div>
-      <button id="logout-btn" class="small" hidden>Log out</button>
+      <div class="row">
+        <span id="who" class="muted small-text"></span>
+        <button id="logout-btn" class="small">Log out</button>
+      </div>
     </div>
   </header>
 
-  <!-- ===================== PIN screen ===================== -->
-  <main id="login-view" class="container" hidden>
-    <form id="login-form" class="card login stack">
-      <h2>Staff login</h2>
-      <div>
-        <label for="pin-input">Enter staff PIN</label>
-        <input id="pin-input" type="password" inputmode="numeric" autocomplete="off" required autofocus>
-      </div>
-      <div id="login-error" class="alert error" hidden></div>
-      <button type="submit" class="primary">Open staff page</button>
-    </form>
-  </main>
-
-  <!-- ===================== Staff app ===================== -->
   <main id="app-view" class="container" hidden>
 
     <nav class="tabs" role="tablist">
       <button class="tab active" data-tab="orders" role="tab">Orders</button>
-      <button class="tab" data-tab="ingredients" role="tab">Ingredients</button>
-      <button class="tab" data-tab="food" role="tab">Food</button>
+      <button class="tab" data-tab="stock" role="tab">Stock</button>
+      <button class="tab" data-tab="details" role="tab">Dish Details</button>
+      <button class="tab" data-tab="menu" role="tab">Menu</button>
       <button class="tab" data-tab="stats" role="tab">Stats</button>
+      <button class="tab" data-tab="admin" role="tab" hidden>Admin</button>
     </nav>
 
     <!-- ---------- Orders tab (Mann) ---------- -->
@@ -46,99 +40,162 @@
         <div>
           <label for="status-filter">Show</label>
           <select id="status-filter">
-            <option value="active">Active orders</option>
+            <option value="active">Needs action</option>
             <option value="placed">New (placed)</option>
-            <option value="accepted">Accepted</option>
             <option value="preparing">Preparing</option>
             <option value="ready">Ready</option>
-            <option value="collected">Collected</option>
-            <option value="rejected">Rejected</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
             <option value="unpaid">Unpaid</option>
             <option value="all">All orders</option>
           </select>
         </div>
         <div class="spacer"></div>
-        <span id="last-updated" class="muted"></span>
+        <span id="last-updated" class="muted small-text"></span>
         <button id="refresh-btn" class="small">Refresh</button>
       </div>
       <div id="order-counts" class="count-chips"></div>
       <div id="orders-list" class="orders-grid"></div>
     </section>
 
-    <!-- ---------- Ingredients tab (Mann) ---------- -->
-    <section id="tab-ingredients" class="stack" hidden>
+    <!-- ---------- Stock tab (Mann) ---------- -->
+    <section id="tab-stock" class="stack" hidden>
       <div id="low-stock-alert" class="alert warn" hidden></div>
-
       <div class="card">
         <div class="row" style="margin-bottom: 8px;">
           <h2>Stock</h2>
           <div class="spacer"></div>
-          <button id="ingredients-refresh-btn" class="small">Refresh</button>
+          <button id="stock-refresh-btn" class="small">Refresh</button>
         </div>
         <div class="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Ingredient</th>
+                <th>Dish</th>
                 <th class="num">In stock</th>
-                <th class="num">Alert below</th>
+                <th class="num">Alert at</th>
+                <th class="num">Sold (7 days)</th>
                 <th>Status</th>
-                <th>Add stock</th>
+                <th>Change stock</th>
                 <th></th>
               </tr>
             </thead>
-            <tbody id="ingredients-body"></tbody>
+            <tbody id="stock-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- Dish Details tab (Mann, MongoDB) ---------- -->
+    <section id="tab-details" class="stack" hidden>
+      <div class="card stack">
+        <div class="row">
+          <h2>Dish details <span class="muted" style="font-weight:400">· stored in MongoDB</span></h2>
+          <div class="spacer"></div>
+          <button id="details-refresh-btn" class="small">Refresh</button>
+        </div>
+        <div id="details-summary" class="count-chips"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Dish</th><th>Type</th><th>Spice</th><th>Allergens</th><th>Tags</th><th>Special</th><th>Other fields</th><th></th></tr>
+            </thead>
+            <tbody id="details-body"></tbody>
           </table>
         </div>
       </div>
 
-      <form id="add-ingredient-form" class="card stack">
-        <h2>Add a new ingredient</h2>
+      <form id="details-form" class="card stack" hidden>
+        <h2 id="details-form-title">Edit details</h2>
         <div class="form-grid">
           <div>
-            <label for="ing-name">Name</label>
-            <input id="ing-name" required maxlength="100" placeholder="e.g. Onion">
+            <label for="det-dietary">Type</label>
+            <select id="det-dietary" required>
+              <option value="veg">Veg</option>
+              <option value="vegan">Vegan</option>
+              <option value="egg">Egg</option>
+              <option value="non-veg">Non-veg</option>
+            </select>
           </div>
           <div>
-            <label for="ing-unit">Unit</label>
-            <input id="ing-unit" required maxlength="20" placeholder="kg, L, pcs">
+            <label for="det-spice">Spice level</label>
+            <select id="det-spice">
+              <option value="0">0 · not spicy</option>
+              <option value="1">1 · mild</option>
+              <option value="2">2 · medium</option>
+              <option value="3">3 · hot</option>
+            </select>
           </div>
           <div>
-            <label for="ing-stock">Starting stock</label>
-            <input id="ing-stock" type="number" min="0" step="0.001" value="0" required>
+            <label for="det-calories">Calories</label>
+            <input id="det-calories" type="number" min="0" max="5000" step="1">
           </div>
           <div>
-            <label for="ing-threshold">Low-stock alert below</label>
-            <input id="ing-threshold" type="number" min="0" step="0.001" value="0" required>
+            <label for="det-tags">Tags (comma separated)</label>
+            <input id="det-tags" maxlength="200" placeholder="bestseller, fried">
           </div>
-          <button type="submit" class="primary">Add ingredient</button>
+          <div>
+            <label for="det-special">Today's special note</label>
+            <input id="det-special" maxlength="200" placeholder="optional">
+          </div>
+        </div>
+        <fieldset class="allergen-box">
+          <legend>Allergens</legend>
+          <div id="det-allergens" class="row"></div>
+        </fieldset>
+        <p id="det-extra" class="muted small-text" hidden></p>
+        <div class="row">
+          <button type="submit" class="primary">Save to MongoDB</button>
+          <button type="button" id="details-cancel">Cancel</button>
         </div>
       </form>
     </section>
 
-    <!-- ---------- Food tab ---------- -->
-    <section id="tab-food" class="stack" hidden>
-      <div class="card">
-        <div class="row" style="margin-bottom: 8px"><h2>Food items</h2><div class="spacer"></div><button id="food-refresh-btn" class="small">Refresh</button></div>
-        <div class="table-wrap"><table><thead><tr><th>Name</th><th>Category</th><th class="num">Price</th><th>Availability</th><th>Actions</th></tr></thead><tbody id="food-body"></tbody></table></div>
-      </div>
-      <form id="food-form" class="card stack">
-        <h2 id="food-form-title">Add a food item</h2><input id="food-id" type="hidden">
-        <div class="form-grid">
-          <div><label for="food-name">Name</label><input id="food-name" required maxlength="100"></div>
-          <div><label for="food-category">Category</label><select id="food-category" required></select></div>
-          <div><label for="food-price">Price (₹)</label><input id="food-price" type="number" min="0.01" step="0.01" required></div>
-          <div><label for="food-description">Description</label><input id="food-description" maxlength="255"></div>
-          <div><label for="food-available">Availability</label><select id="food-available"><option value="true">Available</option><option value="false">Unavailable</option></select></div>
-          <div class="row"><button id="food-save-btn" type="submit" class="primary">Add food item</button><button id="food-cancel-edit" type="button" hidden>Cancel edit</button></div>
-        </div>
-      </form>
+    <!-- ---------- Menu tab (Manoj) ---------- -->
+    <!-- TODO (Manoj): menu list + add / edit / delist form (js/staff-menu.js) -->
+    <section id="tab-menu" class="stack" hidden>
+      <div class="card empty">Menu management is coming soon.</div>
     </section>
 
-    <!-- ---------- Stats tab ---------- -->
+    <!-- ---------- Stats tab (Manoj) ---------- -->
+    <!-- TODO (Manoj): one table per /api/staff/stats/... endpoint (js/staff-stats.js) -->
     <section id="tab-stats" class="stack" hidden>
-      <div class="row"><h2>Reports and statistics</h2><div class="spacer"></div><button id="stats-refresh-btn" class="small">Refresh</button></div>
-      <div id="stats-grid" class="stats-grid"></div>
+      <div class="card empty">Reports are coming soon.</div>
+    </section>
+
+    <!-- ---------- Admin tab (Mann, admin only) ---------- -->
+    <section id="tab-admin" class="stack" hidden>
+      <form id="staff-form" class="card stack">
+        <h2>Add a staff account</h2>
+        <div class="form-grid">
+          <div><label for="new-staff-name">Name</label><input id="new-staff-name" required maxlength="100"></div>
+          <div><label for="new-staff-email">Email</label><input id="new-staff-email" type="email" required maxlength="120"></div>
+          <div><label for="new-staff-phone">Mobile (optional)</label>
+            <input id="new-staff-phone" type="tel" inputmode="numeric" pattern="[6-9][0-9]{9}" maxlength="10"></div>
+          <div><label for="new-staff-password">Password (8+ characters)</label>
+            <input id="new-staff-password" type="password" minlength="8" required maxlength="100" autocomplete="new-password"></div>
+          <button type="submit" class="primary">Create staff account</button>
+        </div>
+      </form>
+
+      <div class="card">
+        <div class="row" style="margin-bottom: 8px;">
+          <h2>Users</h2>
+          <div class="spacer"></div>
+          <select id="user-role-filter" style="width:auto">
+            <option value="">All roles</option>
+            <option value="student">Students</option>
+            <option value="staff">Staff</option>
+            <option value="admin">Admins</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Phone</th><th>Joined</th><th>Status</th><th></th></tr></thead>
+            <tbody id="users-body"></tbody>
+          </table>
+        </div>
+      </div>
     </section>
 
   </main>
