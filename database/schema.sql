@@ -6,7 +6,7 @@
 -- Sections:
 --   MANN  : users, orders, order_items, inventory_transactions,
 --           triggers, place_order, cancel_order, order_total()
---   MANOJ : canteens, menu_items, views
+--   MANOJ : canteens, menu_items, FULLTEXT index, views
 -- Only edit your own section.
 -- =====================================================================
 
@@ -45,9 +45,8 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- =====================================================================
 -- MANOJ: canteens and menu
--- TODO (Manoj): add the FULLTEXT index on (name, description, category)
--- and any extra checks. Mann's code uses every column below, so keep
--- the names.
+-- Manoj owns these tables, the FULLTEXT index, and the report views.
+-- Mann's code uses every column below, so keep the names.
 -- =====================================================================
 
 CREATE TABLE canteens (
@@ -78,6 +77,7 @@ CREATE TABLE menu_items (
 
 CREATE INDEX idx_menu_canteen ON menu_items (canteen_id);
 CREATE INDEX idx_menu_status  ON menu_items (status);
+CREATE FULLTEXT INDEX ft_menu_search ON menu_items (name, description, category);
 
 
 -- =====================================================================
@@ -431,6 +431,39 @@ DELIMITER ;
 
 -- =====================================================================
 -- MANOJ: report views
--- TODO (Manoj): v_available_items, v_sales_report (paid orders only,
--- per day and per category), v_low_stock, v_unpaid_orders
+-- =====================================================================
+CREATE VIEW v_available_items AS
+SELECT m.item_id, m.canteen_id, c.name AS canteen_name, c.location,
+       m.name, m.description, m.category, m.price, m.current_stock,
+       m.low_stock_threshold, m.status, m.created_at
+FROM menu_items AS m
+JOIN canteens AS c ON c.canteen_id = m.canteen_id
+WHERE m.status = 'available';
+
+CREATE VIEW v_sales_report AS
+SELECT DATE(o.created_at) AS sale_date, m.category,
+       SUM(oi.quantity * oi.price_at_order) AS sales_total,
+       SUM(oi.quantity) AS items_sold,
+       COUNT(DISTINCT o.order_id) AS order_count
+FROM orders AS o
+JOIN order_items AS oi ON oi.order_id = o.order_id
+JOIN menu_items AS m ON m.item_id = oi.item_id
+WHERE o.payment_status = 'paid'
+GROUP BY DATE(o.created_at), m.category;
+
+CREATE VIEW v_low_stock AS
+SELECT m.item_id, m.name, m.category, c.name AS canteen_name,
+       m.current_stock, m.low_stock_threshold, m.status
+FROM menu_items AS m
+JOIN canteens AS c ON c.canteen_id = m.canteen_id
+WHERE m.current_stock <= m.low_stock_threshold;
+
+CREATE VIEW v_unpaid_orders AS
+SELECT o.order_id, o.student_id, u.name AS student_name,
+       o.canteen_id, c.name AS canteen_name, o.status, o.payment_status,
+       o.total, o.created_at, o.updated_at
+FROM orders AS o
+JOIN users AS u ON u.user_id = o.student_id
+JOIN canteens AS c ON c.canteen_id = o.canteen_id
+WHERE o.payment_status = 'unpaid' AND o.status <> 'cancelled';
 -- =====================================================================

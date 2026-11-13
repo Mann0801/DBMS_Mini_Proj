@@ -1,71 +1,57 @@
--- CampusEats sample data. Load after database/schema.sql on a fresh schema:
---   mariadb -u campuseats -p campuseats < database/seed.sql
+-- Complete v2 demo data. Load after database/schema.sql.
 
-INSERT INTO categories (id, name) VALUES
-    (1, 'Snacks'),
-    (2, 'Meals'),
-    (3, 'Wraps & Sandwiches'),
-    (4, 'Beverages'),
-    (5, 'Desserts');
+INSERT INTO canteens (canteen_id, name, location)
+VALUES (1, 'Main Canteen', 'Block A, Ground Floor');
 
-INSERT INTO food_items (id, name, description, price, category_id) VALUES
-    (1, 'Samosa', 'Crisp pastry with spiced potato filling', 18.00, 1),
-    (2, 'Veg Puff', 'Flaky pastry filled with vegetables', 22.00, 1),
-    (3, 'Aloo Tikki', 'Golden potato patties with chutney', 30.00, 1),
-    (4, 'Veg Thali', 'Rice, dal, seasonal vegetables and roti', 95.00, 2),
-    (5, 'Rajma Chawal', 'Kidney bean curry served with rice', 85.00, 2),
-    (6, 'Paneer Biryani', 'Fragrant rice with spiced paneer', 120.00, 2),
-    (7, 'Dal Khichdi', 'Comforting lentil and rice khichdi', 75.00, 2),
-    (8, 'Paneer Wrap', 'Spiced paneer wrapped with vegetables', 80.00, 3),
-    (9, 'Veg Frankie', 'Vegetable filling in a soft flatbread', 65.00, 3),
-    (10, 'Grilled Sandwich', 'Grilled bread with vegetables and cheese', 70.00, 3),
-    (11, 'Masala Chai', 'Milk tea brewed with warming spices', 18.00, 4),
-    (12, 'Cold Coffee', 'Chilled milk coffee', 45.00, 4),
-    (13, 'Mango Lassi', 'Yogurt drink blended with mango', 50.00, 4),
-    (14, 'Gulab Jamun', 'Soft milk dumplings in sugar syrup', 35.00, 5),
-    (15, 'Chocolate Brownie', 'Rich cocoa brownie', 45.00, 5);
+INSERT INTO users (user_id, name, email, password_hash, role, phone) VALUES
+(1,'Canteen Admin','admin@campuseats.test','pbkdf2_sha256$200000$b4f9e78ecf88e773$VPHi0LeE3GrAjND9RGCPcVCFk7sXJUB7T0iMe0eGnQk=','admin',NULL),
+(2,'Ravi Kumar','staff1@campuseats.test','pbkdf2_sha256$200000$b0c9490cee171265$9KnqJusZaQGsSVXN9BjMVWJUvwqBES91mSXCZOWHWAI=','staff','9811111111'),
+(3,'Meera Das','staff2@campuseats.test','pbkdf2_sha256$200000$05dc06aa13bee2fb$zpnvsgVtgk5MXOpIbPnuQuCCLz3MqAOAUmZX2Px6ED8=','staff','9822222222'),
+(4,'Aarav Shah','student1@campuseats.test','pbkdf2_sha256$200000$401466a922019ea6$l23yuP+58XuQgwN3rR1m7yV2US2dp1lFJkHT40KfMUU=','student','9876543210'),
+(5,'Priya Nair','student2@campuseats.test','pbkdf2_sha256$200000$ee19b8959e20431b$PStJcCJsMggPng/3diLXCjpN1P6DD2n8YCYlsZjnvt4=','student','9123456780'),
+(6,'Kabir Rao','student3@campuseats.test','pbkdf2_sha256$200000$d4e03e2ef6360512$0J2vi++nAJH0QFfWpHVTIEr8fbMlFrtXIBptJRTDAvo=','student','9988776655'),
+(7,'Ananya Iyer','student4@campuseats.test','pbkdf2_sha256$200000$2f912618dbcc85b4$c4RpQ5TVBvzrsb24gCioqwK9QhsbqBV9fQEp6kRU+IE=','student','8765432109'),
+(8,'Dev Patel','student5@campuseats.test','pbkdf2_sha256$200000$16bae4082b9e84a0$o+kAxGQKVISnm0asegdXMLXFte4pSNmfVNPMTAjaN78=','student','7654321098'),
+(9,'Sana Ali','student6@campuseats.test','pbkdf2_sha256$200000$6371aa81d8281a3e$GqLWlCkkH8OFAgNvlfBFwbRRWGwQCl1nkG0EUzY3nqQ=','student','6543210987');
 
-INSERT INTO ingredients (id, name, unit, stock, low_stock_threshold) VALUES
-    (1, 'Potato', 'kg', 8.000, 1.000),
-    (2, 'Flour', 'kg', 7.000, 1.000),
-    (3, 'Cooking Oil', 'L', 5.000, 1.000),
-    (4, 'Paneer', 'kg', 3.000, 0.500),
-    (5, 'Rice', 'kg', 10.000, 2.000),
-    (6, 'Kidney Beans', 'kg', 4.000, 1.000),
-    (7, 'Lentils', 'kg', 4.000, 1.000),
-    (8, 'Tomato', 'kg', 4.000, 1.000),
-    (9, 'Onion', 'kg', 4.000, 1.000),
-    (10, 'Mixed Spices', 'kg', 1.000, 0.200),
-    (11, 'Bread', 'loaf', 12.000, 2.000),
-    (12, 'Tea Leaves', 'kg', 1.000, 0.200),
-    (13, 'Milk', 'L', 12.000, 2.000),
-    (14, 'Sugar', 'kg', 5.000, 1.000),
-    (15, 'Cocoa', 'kg', 2.000, 0.300);
+INSERT INTO menu_items (item_id,canteen_id,name,description,category,price,current_stock,low_stock_threshold,status) VALUES
+(1,1,'Samosa','Crisp pastry with spiced potato filling','Snacks',18.00,40,10,'available'),
+(2,1,'Veg Puff','Flaky pastry filled with vegetables','Snacks',22.00,18,5,'available'),
+(3,1,'Aloo Tikki','Golden potato patties with chutney','Snacks',30.00,14,5,'available'),
+(4,1,'Veg Thali','Rice, dal, seasonal vegetables and roti','Meals',95.00,22,5,'available'),
+(5,1,'Rajma Chawal','Kidney bean curry served with rice','Meals',85.00,16,5,'available'),
+(6,1,'Paneer Biryani','Fragrant rice with spiced paneer','Meals',120.00,12,4,'available'),
+(7,1,'Dal Khichdi','Comforting lentil and rice khichdi','Meals',75.00,2,5,'available'),
+(8,1,'Paneer Wrap','Spiced paneer wrapped with vegetables','Snacks',80.00,3,5,'available'),
+(9,1,'Veg Frankie','Vegetable filling in a soft flatbread','Snacks',65.00,13,4,'available'),
+(10,1,'Grilled Sandwich','Grilled bread with vegetables and cheese','Snacks',70.00,11,4,'available'),
+(11,1,'Masala Chai','Milk tea brewed with warming spices','Beverages',18.00,50,10,'available'),
+(12,1,'Cold Coffee','Chilled milk coffee','Beverages',45.00,24,6,'available'),
+(13,1,'Mango Lassi','Yogurt drink blended with mango','Beverages',50.00,17,5,'available'),
+(14,1,'Gulab Jamun','Soft milk dumplings in sugar syrup','Desserts',35.00,0,5,'sold_out'),
+(15,1,'Chocolate Brownie','Rich cocoa brownie','Desserts',45.00,20,5,'available');
 
--- Quantities are required per one serving; every food item has a recipe.
-INSERT INTO recipes (food_item_id, ingredient_id, quantity_needed) VALUES
-    (1, 1, 0.060), (1, 2, 0.035), (1, 3, 0.020), (1, 10, 0.003),
-    (2, 1, 0.040), (2, 2, 0.045), (2, 9, 0.010),
-    (3, 1, 0.120), (3, 3, 0.015), (3, 10, 0.004),
-    (4, 5, 0.120), (4, 7, 0.050), (4, 2, 0.060), (4, 8, 0.030),
-    (5, 5, 0.140), (5, 6, 0.080), (5, 8, 0.040), (5, 9, 0.020),
-    (6, 5, 0.160), (6, 4, 0.080), (6, 9, 0.020), (6, 10, 0.005),
-    (7, 5, 0.080), (7, 7, 0.060), (7, 3, 0.010),
-    (8, 4, 0.100), (8, 2, 0.060), (8, 9, 0.015), (8, 10, 0.004),
-    (9, 1, 0.050), (9, 2, 0.055), (9, 9, 0.015), (9, 10, 0.003),
-    (10, 11, 0.100), (10, 4, 0.030), (10, 1, 0.040),
-    (11, 12, 0.003), (11, 13, 0.120), (11, 14, 0.008),
-    (12, 13, 0.200), (12, 14, 0.012), (12, 15, 0.004),
-    (13, 13, 0.150), (13, 14, 0.010),
-    (14, 2, 0.025), (14, 13, 0.015), (14, 14, 0.030),
-    (15, 2, 0.030), (15, 13, 0.020), (15, 14, 0.020), (15, 15, 0.015);
+-- Orders are created through place_order so stock and inventory history agree.
+CALL place_order(4,1,'[{"item_id":1,"quantity":2},{"item_id":11,"quantity":1}]',@o1);
+CALL place_order(5,1,'[{"item_id":4,"quantity":1},{"item_id":8,"quantity":1}]',@o2);
+CALL place_order(6,1,'[{"item_id":5,"quantity":1},{"item_id":12,"quantity":1}]',@o3);
+CALL place_order(7,1,'[{"item_id":2,"quantity":2},{"item_id":13,"quantity":1}]',@o4);
+CALL place_order(8,1,'[{"item_id":6,"quantity":1},{"item_id":3,"quantity":1}]',@o5);
+CALL place_order(9,1,'[{"item_id":9,"quantity":1},{"item_id":11,"quantity":2}]',@o6);
+CALL place_order(4,1,'[{"item_id":10,"quantity":1},{"item_id":15,"quantity":1}]',@o7);
+CALL place_order(5,1,'[{"item_id":7,"quantity":1},{"item_id":1,"quantity":1}]',@o8);
+CALL place_order(6,1,'[{"item_id":3,"quantity":1},{"item_id":12,"quantity":1}]',@o9);
 
-INSERT INTO orders (id, customer_name, customer_phone, status, payment_status, total) VALUES
-    (1, 'Aarav Shah', '9876543210', 'collected', 'paid', 131.00),
-    (2, 'Priya Nair', '9123456780', 'accepted', 'unpaid', 160.00),
-    (3, 'Kabir Rao', '9988776655', 'placed', 'unpaid', 75.00);
+UPDATE orders SET status='preparing' WHERE order_id=@o2;
+UPDATE orders SET status='ready' WHERE order_id=@o3;
+UPDATE orders SET status='completed', payment_status='paid' WHERE order_id IN (@o1,@o4,@o5);
+UPDATE orders SET payment_status='paid' WHERE order_id=@o6;
+CALL cancel_order(@o8);
 
-INSERT INTO order_items (order_id, food_item_id, quantity, price) VALUES
-    (1, 1, 2, 18.00), (1, 4, 1, 95.00),
-    (2, 8, 2, 80.00),
-    (3, 11, 1, 18.00), (3, 14, 1, 35.00), (3, 2, 1, 22.00);
+UPDATE orders SET created_at=NOW()-INTERVAL 6 DAY WHERE order_id=@o1;
+UPDATE orders SET created_at=NOW()-INTERVAL 5 DAY WHERE order_id=@o2;
+UPDATE orders SET created_at=NOW()-INTERVAL 4 DAY WHERE order_id=@o3;
+UPDATE orders SET created_at=NOW()-INTERVAL 3 DAY WHERE order_id=@o4;
+UPDATE orders SET created_at=NOW()-INTERVAL 2 DAY WHERE order_id=@o5;
+UPDATE orders SET created_at=NOW()-INTERVAL 1 DAY WHERE order_id=@o6;
+UPDATE orders SET created_at=NOW() WHERE order_id IN (@o7,@o9);
