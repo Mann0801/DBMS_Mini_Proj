@@ -7,6 +7,13 @@ if (!user || user.role !== "student" || !Auth.token()) location.replace("/login.
 let menuItems = [];
 const cart = new Map();
 let menuTimer;
+// Dish details from MongoDB, keyed by item_id (same id as MariaDB menu_items).
+// The menu still works if MongoDB is down: the cards just show no details.
+let detailsById = new Map();
+let allowedIds = null;   // null = no dish-detail filter; else Set of item_ids MongoDB returned
+
+const DIET_LABEL = { veg: "Veg", vegan: "Vegan", egg: "Egg", "non-veg": "Non-veg" };
+const SPICE_LABEL = ["Not spicy", "Mild", "Medium", "Hot"];
 $("welcome-name").textContent = user?.name || "";
 
 async function loadCategories() {
@@ -23,17 +30,73 @@ async function loadMenu() {
   } catch (err) { notice.textContent = err.message; notice.hidden = false; $("menu-grid").replaceChildren(); }
 }
 
+// ---- dish details (MongoDB) ----
+async function loadDetails() {
+  try {
+    const docs = await API.get("/api/menu-details");
+    detailsById = new Map(docs.map((d) => [d.item_id, d]));
+    const allergens = [...new Set(docs.flatMap((d) => d.allergens || []))].sort();
+    $("allergen-filter").innerHTML = '<option value="">None</option>' +
+      allergens.map((a) => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join("");
+  } catch {
+    detailsById = new Map();
+    $("diet-filters").hidden = true;   // MongoDB unavailable: hide its filters
+  }
+}
+
+// Ask MongoDB which dishes match (find with $in / $nin / $lte).
+let dietRequest = 0;   // only the latest filter request may update the menu
+async function applyDietFilters() {
+  const mine = ++dietRequest;
+  const filters = { dietary: $("diet-filter").value, exclude_allergen: $("allergen-filter").value,
+                    max_spice: $("spice-filter").value };
+  if (!filters.dietary && !filters.exclude_allergen && filters.max_spice === "") {
+    allowedIds = null;
+  } else {
+    try {
+      const docs = await API.get(API.withQuery("/api/menu-details", filters));
+      if (mine !== dietRequest) return;   // a newer filter change already ran
+      allowedIds = new Set(docs.map((d) => d.item_id));
+    } catch (err) {
+      if (mine !== dietRequest) return;
+      allowedIds = null;
+      $("menu-message").textContent = err.message; $("menu-message").hidden = false;
+    }
+  }
+  renderMenu();
+}
+
+function detailsHtml(d) {
+  if (!d) return "";
+  const diet = DIET_LABEL[d.dietary] || d.dietary;
+  const spice = SPICE_LABEL[d.spice_level] ?? "";
+  const allergens = (d.allergens || []).length
+    ? `<p class="allergens"><strong>Allergens:</strong> ${d.allergens.map(escapeHtml).join(", ")}</p>`
+    : '<p class="allergens muted">No common allergens</p>';
+  const tags = (d.tags || []).map((t) => `<span class="badge tag">${escapeHtml(t)}</span>`).join("");
+  return `<div class="dish-facts">
+      <span class="diet-mark ${escapeHtml(d.dietary)}" title="${escapeHtml(diet)}"></span><span>${escapeHtml(diet)}</span>
+      <span><span class="dot-sep">· </span><span class="spice s${Number(d.spice_level)}">${escapeHtml(spice)}</span></span>
+      ${d.calories != null ? `<span><span class="dot-sep">· </span><span class="muted">${Number(d.calories)} kcal</span></span>` : ""}
+    </div>
+    ${allergens}
+    ${tags ? `<div class="tag-row">${tags}</div>` : ""}
+    ${d.special && d.special.note ? `<p class="special-note">★ ${escapeHtml(d.special.note)}</p>` : ""}`;
+}
+
 function renderMenu() {
-  $("menu-grid").innerHTML = menuItems.length ? menuItems.map((item) => {
+  const shown = allowedIds ? menuItems.filter((item) => allowedIds.has(item.item_id)) : menuItems;
+  $("menu-grid").innerHTML = shown.length ? shown.map((item) => {
     const soldOut = item.status !== "available" || Number(item.current_stock) < 1;
     const stock = Number(item.current_stock);
     return `<article class="card food-card ${soldOut ? "sold-out" : ""}">
       <div class="row"><span class="badge">${escapeHtml(item.category)}</span><span class="spacer"></span><strong>${formatMoney(item.price)}</strong></div>
       <h2>${escapeHtml(item.name)}</h2><p class="muted">${escapeHtml(item.description || "Freshly prepared at the canteen.")}</p>
+      ${detailsHtml(detailsById.get(item.item_id))}
       ${!soldOut && stock <= Number(item.low_stock_threshold) ? `<p class="stock-note">Only ${stock} left</p>` : ""}
       <button class="primary" data-add="${item.item_id}" ${soldOut ? "disabled" : ""}>${soldOut ? "Sold out" : "Add to cart"}</button>
     </article>`;
-  }).join("") : '<div class="card empty">No available dishes match your search.</div>';
+  }).join("") : `<div class="card empty">${allowedIds ? "No dishes match these food filters." : "No available dishes match your search."}</div>`;
 }
 
 function renderCart() {
@@ -63,6 +126,7 @@ $("cart-items").addEventListener("click", (e) => {
 });
 $("menu-search").addEventListener("input", () => { clearTimeout(menuTimer); menuTimer = setTimeout(loadMenu, 250); });
 $("category-filter").addEventListener("change", loadMenu);
+["diet-filter", "allergen-filter", "spice-filter"].forEach((id) => $(id).addEventListener("change", applyDietFilters));
 $("menu-filters").addEventListener("submit", (e) => { e.preventDefault(); loadMenu(); });
 
 $("checkout-form").addEventListener("submit", async (e) => {
@@ -96,4 +160,4 @@ $("orders-list").addEventListener("click", async (e) => {
 $("logout-btn").addEventListener("click", () => Auth.logout());
 
 renderCart();
-Promise.all([loadCategories(), loadMenu(), loadOrders()]).catch((err) => { $("menu-message").textContent = err.message; $("menu-message").hidden = false; });
+Promise.all([loadCategories(), loadDetails().then(loadMenu), loadOrders()]).catch((err) => { $("menu-message").textContent = err.message; $("menu-message").hidden = false; });

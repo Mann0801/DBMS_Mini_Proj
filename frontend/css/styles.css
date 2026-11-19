@@ -192,6 +192,26 @@ tr.low td { background: var(--danger-soft); }
 .food-card p { margin: 0; flex: 1; }
 .food-card.sold-out { opacity: .55; filter: grayscale(1); }
 .stock-note { color: var(--warn); font-weight: 700; }
+/* dish details from MongoDB on the student menu */
+.food-filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.food-filters select { width: 100%; }
+.food-card:has(.dish-facts) > p.muted:first-of-type { flex: 0; }
+.food-card:has(.dish-facts) > button { margin-top: auto; }
+.dish-facts > span { white-space: nowrap; }
+.dish-facts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: .9rem; }
+.dot-sep { color: var(--muted); }
+.diet-mark { width: 14px; height: 14px; border: 2px solid var(--ok); border-radius: 2px; position: relative; flex: none; }
+.diet-mark::after { content: ""; position: absolute; inset: 2px; border-radius: 50%; background: var(--ok); }
+.diet-mark.non-veg { border-color: var(--danger); }
+.diet-mark.non-veg::after { background: var(--danger); }
+.diet-mark.egg { border-color: var(--warn); }
+.diet-mark.egg::after { background: var(--warn); }
+.spice.s2 { color: var(--warn); font-weight: 600; }
+.spice.s3 { color: var(--danger); font-weight: 700; }
+.food-card p.allergens { flex: 0; font-size: .85rem; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.badge.tag { background: var(--info-soft); color: var(--info); text-transform: none; }
+.food-card p.special-note { flex: 0; color: var(--primary); font-weight: 600; font-size: .88rem; }
 .order-history p { margin-bottom: 0; }
 .student-side { position: sticky; top: 74px; }
 .cart-line { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
@@ -208,7 +228,7 @@ tr.low td { background: var(--danger-soft); }
   .student-side { position: static; }
 }
 @media (max-width: 520px) {
-  .menu-filters { grid-template-columns: 1fr; }
+  .menu-filters, .food-filters { grid-template-columns: 1fr; }
   .student-layout { padding-left: 12px; padding-right: 12px; }
   .cart-line { align-items: center; }
   .quantity-control { gap: 5px; }

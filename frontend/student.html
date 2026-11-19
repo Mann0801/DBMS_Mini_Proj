@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CampusEats — Student</title><link rel="stylesheet" href="/css/styles.css">
-  <script src="/js/api.js" defer></script><script src="/js/student.js" defer></script>
+  <title>CampusEats — Student</title><link rel="stylesheet" href="/css/styles.css?v=2">
+  <script src="/js/api.js" defer></script><script src="/js/student.js?v=2" defer></script>
 </head>
 <body class="student-page">
   <header class="topbar"><div class="container"><div class="brand">CampusEats <small>Main Canteen</small></div>
@@ -12,6 +12,15 @@
     <section class="student-menu stack"><div><h1>Today's menu</h1><p class="muted">Order ahead and pay at the counter.</p></div>
       <form id="menu-filters" class="menu-filters"><div><label for="menu-search">Search dishes</label><input id="menu-search" type="search" maxlength="100" placeholder="Try paneer"></div>
         <div><label for="category-filter">Category</label><select id="category-filter"><option value="">All categories</option></select></div><button type="submit">Search</button></form>
+      <!-- dish-detail filters: answered by MongoDB (/api/menu-details) -->
+      <div id="diet-filters" class="food-filters">
+        <div><label for="diet-filter">Food type</label><select id="diet-filter">
+          <option value="">Any</option><option value="veg">Veg (incl. vegan)</option><option value="vegan">Vegan</option>
+          <option value="egg">Egg</option><option value="non-veg">Non-veg</option></select></div>
+        <div><label for="allergen-filter">Avoid allergen</label><select id="allergen-filter"><option value="">None</option></select></div>
+        <div><label for="spice-filter">Spice</label><select id="spice-filter">
+          <option value="">Any</option><option value="0">Not spicy</option><option value="1">Mild at most</option><option value="2">Medium at most</option></select></div>
+      </div>
       <div id="menu-message" class="alert error" hidden></div><div id="menu-grid" class="menu-grid" aria-live="polite"></div>
       <section class="card stack"><h2>My orders</h2><div id="orders-list" class="orders-grid" aria-live="polite"></div></section>
     </section>
